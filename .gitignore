@@ -43,3 +43,7 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# npm cache
+.npm-cache/
+.npm/
