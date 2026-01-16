@@ -197,6 +197,10 @@ body::before {
 }
 
 /* Header Moderno */
+:root {
+	--header-height: 80px;
+}
+
 .header {
 	background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 	color: white;
@@ -208,6 +212,7 @@ body::before {
 	backdrop-filter: blur(10px);
 	flex-shrink: 0;
 	height: auto;
+	min-height: 70px;
 }
 
 .header-container {
@@ -218,12 +223,16 @@ body::before {
 	margin: 0 auto;
 	padding: 0 2rem;
 	position: relative;
+	gap: 0.5rem;
+	width: 100%;
 }
 
 .logo-section {
 	display: flex;
 	align-items: center;
 	gap: 0;
+	flex: 1;
+	min-width: 0;
 }
 
 .logo-placeholder {
@@ -231,6 +240,7 @@ body::before {
 	width: 200px;
 	height: 75px;
 	overflow: hidden;
+	flex-shrink: 0;
 }
 
 .logo-placeholder img {
@@ -244,6 +254,9 @@ body::before {
 
 .gov-title {
 	margin-left: -0.5rem;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .gov-title h1 {
@@ -251,11 +264,17 @@ body::before {
 	margin-bottom: 0.1rem;
 	font-weight: 600;
 	letter-spacing: -0.01em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .gov-title p {
 	font-size: 0.7rem;
 	opacity: 0.9;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* Navigation */
@@ -354,25 +373,34 @@ body::before {
 @media (max-width: 768px) {
 	.header-container {
 		padding: 0 0.75rem;
+		position: relative;
+		z-index: 1001;
 	}
 
 	.mobile-menu-toggle {
 		display: block;
+		position: relative;
+		z-index: 1002;
 	}
 
 	.nav {
-		position: absolute;
-		top: 100%;
+		position: fixed;
+		top: 0;
 		left: 0;
 		right: 0;
 		background: var(--primary-dark);
 		flex-direction: column;
 		padding: 1rem;
+		padding-top: calc(var(--header-height, 80px) + 1rem);
 		box-shadow: var(--shadow-lg);
 		transform: translateY(-100%);
 		opacity: 0;
 		pointer-events: none;
 		transition: var(--transition);
+		z-index: 999;
+		max-height: 100vh;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.nav.mobile-open {
@@ -381,9 +409,30 @@ body::before {
 		pointer-events: all;
 	}
 
+	.mobile-menu-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 998;
+		backdrop-filter: blur(2px);
+		animation: fadeIn 0.2s ease;
+	}
+
+	/* Asegurar que el contenido principal no se desplace cuando el menú está abierto */
+	body.menu-open {
+		overflow: hidden;
+		position: fixed;
+		width: 100%;
+	}
+
 	.nav-link {
 		width: 100%;
 		justify-content: flex-start;
+		padding: 1rem 1.25rem;
+		font-size: 1rem;
 	}
 }
 
@@ -1213,7 +1262,8 @@ body::before {
 /* Responsive */
 @media (max-width: 768px) {
 	.main {
-		min-height: calc(100vh - 90px);
+		min-height: calc(100vh - var(--header-height, 80px));
+		height: calc(100vh - var(--header-height, 80px));
 	}
 
 	.container {
@@ -1303,6 +1353,11 @@ body::before {
 
 	.header {
 		padding: 0.4rem 0;
+		min-height: 70px;
+	}
+
+	:root {
+		--header-height: 70px;
 	}
 
 	.logo-placeholder {
@@ -1310,12 +1365,100 @@ body::before {
 		height: 60px;
 	}
 
+	.gov-title {
+		margin-left: -0.3rem;
+	}
+
 	.gov-title h1 {
 		font-size: 0.8rem;
+		line-height: 1.2;
 	}
 
 	.gov-title p {
 		font-size: 0.65rem;
+		line-height: 1.2;
+	}
+
+	.header-container {
+		padding: 0 0.75rem;
+	}
+
+	.nav {
+		padding-top: calc(var(--header-height, 70px) + 1rem);
+	}
+}
+
+/* Media query para pantallas medianas (Samsung G51, etc.) */
+@media (max-width: 720px) and (min-width: 481px) {
+	.header {
+		min-height: 68px;
+		padding: 0.38rem 0;
+	}
+
+	:root {
+		--header-height: 68px;
+	}
+
+	.main {
+		min-height: calc(100vh - var(--header-height, 68px));
+		height: calc(100vh - var(--header-height, 68px));
+	}
+
+	.header-container {
+		padding: 0 0.6rem;
+	}
+
+	.logo-placeholder {
+		width: 140px;
+		height: 55px;
+	}
+
+	.gov-title {
+		margin-left: -0.25rem;
+	}
+
+	.gov-title h1 {
+		font-size: 0.75rem;
+		line-height: 1.2;
+	}
+
+	.gov-title p {
+		font-size: 0.63rem;
+		line-height: 1.2;
+	}
+
+	.container {
+		padding: 0.4rem;
+	}
+
+	.feature-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+	}
+
+	.feature-card {
+		padding: 1.1rem;
+		min-height: 190px;
+	}
+
+	.nav {
+		padding-top: calc(var(--header-height, 68px) + 1rem);
+	}
+
+	.nav-link {
+		padding: 0.9rem 1.1rem;
+		font-size: 0.9rem;
+	}
+
+	.mobile-menu-toggle {
+		padding: 0.45rem;
+		font-size: 1.4rem;
+	}
+
+	.hamburger {
+		width: 23px;
+		height: 17px;
+		gap: 3.5px;
 	}
 }
 
@@ -1325,7 +1468,8 @@ body::before {
 	}
 
 	.main {
-		min-height: calc(100vh - 80px);
+		min-height: calc(100vh - var(--header-height, 65px));
+		height: calc(100vh - var(--header-height, 65px));
 	}
 
 	.container {
@@ -1409,6 +1553,15 @@ body::before {
 		padding: 0.5rem;
 	}
 
+	.header {
+		min-height: 65px;
+		padding: 0.35rem 0;
+	}
+
+	:root {
+		--header-height: 65px;
+	}
+
 	.header-container {
 		padding: 0 0.5rem;
 	}
@@ -1418,12 +1571,38 @@ body::before {
 		height: 50px;
 	}
 
+	.gov-title {
+		margin-left: -0.2rem;
+	}
+
 	.gov-title h1 {
 		font-size: 0.7rem;
+		line-height: 1.2;
 	}
 
 	.gov-title p {
 		font-size: 0.6rem;
+		line-height: 1.2;
+	}
+
+	.mobile-menu-toggle {
+		padding: 0.4rem;
+		font-size: 1.3rem;
+	}
+
+	.hamburger {
+		width: 22px;
+		height: 16px;
+		gap: 3px;
+	}
+
+	.nav {
+		padding-top: calc(var(--header-height, 65px) + 1rem);
+	}
+
+	.nav-link {
+		padding: 0.9rem 1rem;
+		font-size: 0.95rem;
 	}
 }
 
@@ -1434,6 +1613,47 @@ body::before {
 
 	.header-container {
 		padding: 0 0.4rem;
+	}
+
+	.logo-placeholder {
+		width: 100px;
+		height: 45px;
+	}
+
+	.gov-title {
+		margin-left: -0.15rem;
+	}
+
+	.gov-title h1 {
+		font-size: 0.65rem;
+		line-height: 1.1;
+	}
+
+	.gov-title p {
+		font-size: 0.55rem;
+		line-height: 1.1;
+	}
+
+	.mobile-menu-toggle {
+		padding: 0.35rem;
+		font-size: 1.2rem;
+	}
+
+	.hamburger {
+		width: 20px;
+		height: 15px;
+		gap: 2.5px;
+	}
+
+	.nav {
+		padding-top: calc(65px + 0.75rem);
+		padding: 0.75rem;
+		padding-top: calc(65px + 0.75rem);
+	}
+
+	.nav-link {
+		padding: 0.85rem 0.9rem;
+		font-size: 0.9rem;
 	}
 
 	.hero {

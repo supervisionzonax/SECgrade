@@ -1,11 +1,23 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Header() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+	// Prevenir scroll del body cuando el menú móvil está abierto
+	useEffect(() => {
+		if (mobileMenuOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "";
+		}
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [mobileMenuOpen]);
 
 	const handleLogoClick = (e) => {
 		e.preventDefault();
@@ -22,7 +34,8 @@ export default function Header() {
 	};
 
 	return (
-		<header className="header">
+		<>
+			<header className="header">
 				<div className="header-container">
 					<div className="logo-section" onClick={handleLogoClick} style={{ cursor: "pointer" }}>
 						<div className="logo-placeholder">
@@ -82,5 +95,13 @@ export default function Header() {
 					</nav>
 				</div>
 			</header>
+			{mobileMenuOpen && (
+				<div 
+					className="mobile-menu-overlay"
+					onClick={() => setMobileMenuOpen(false)}
+					aria-hidden="true"
+				/>
+			)}
+		</>
 	);
 }
