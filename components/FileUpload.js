@@ -1,10 +1,11 @@
 "use client";
 import { useRef, useState } from "react";
 
-export default function FileUpload({ onFileSelect, acceptedFormats, label }) {
+export default function FileUpload({ onFileSelect, acceptedFormats, label, disabled = false }) {
 	const [isDragging, setIsDragging] = useState(false);
 	const [fileName, setFileName] = useState("");
 	const fileInputRef = useRef(null);
+	const isProcessingRef = useRef(false);
 
 	const handleDragOver = (e) => {
 		e.preventDefault();
@@ -20,12 +21,21 @@ export default function FileUpload({ onFileSelect, acceptedFormats, label }) {
 		e.preventDefault();
 		setIsDragging(false);
 
+		if (disabled || isProcessingRef.current) {
+			return;
+		}
+
 		const files = e.dataTransfer.files;
 		if (files.length > 0) {
 			const file = files[0];
 			if (validateFileType(file)) {
+				isProcessingRef.current = true;
 				setFileName(file.name);
 				onFileSelect(file);
+				// Resetear después de un tiempo para permitir otra selección
+				setTimeout(() => {
+					isProcessingRef.current = false;
+				}, 2000);
 			} else {
 				alert(`Formato no compatible. Use: ${acceptedFormats}`);
 			}
@@ -33,11 +43,21 @@ export default function FileUpload({ onFileSelect, acceptedFormats, label }) {
 	};
 
 	const handleFileInput = (e) => {
+		if (disabled || isProcessingRef.current) {
+			e.target.value = "";
+			return;
+		}
+
 		if (e.target.files.length > 0) {
 			const file = e.target.files[0];
 			if (validateFileType(file)) {
+				isProcessingRef.current = true;
 				setFileName(file.name);
 				onFileSelect(file);
+				// Resetear después de un tiempo para permitir otra selección
+				setTimeout(() => {
+					isProcessingRef.current = false;
+				}, 2000);
 			} else {
 				alert(`Formato no compatible. Use: ${acceptedFormats}`);
 				e.target.value = "";
@@ -85,20 +105,30 @@ export default function FileUpload({ onFileSelect, acceptedFormats, label }) {
 	const handleClearFile = (e) => {
 		e.preventDefault();
 		e.stopPropagation();
+		
+		if (disabled || isProcessingRef.current) {
+			return;
+		}
+
+		isProcessingRef.current = true;
 		setFileName("");
 		onFileSelect(null);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
+		setTimeout(() => {
+			isProcessingRef.current = false;
+		}, 500);
 	};
 
 	return (
 		<div
-			className={`file-upload ${isDragging ? "dragging" : ""} ${fileName ? "has-file" : ""}`}
+			className={`file-upload ${isDragging ? "dragging" : ""} ${fileName ? "has-file" : ""} ${disabled ? "disabled" : ""}`}
 			onDragOver={handleDragOver}
 			onDragLeave={handleDragLeave}
 			onDrop={handleDrop}
 			onClick={handleContainerClick}
+			style={{ opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? "none" : "auto" }}
 		>
 			<div className="upload-icon">
 				<i className="fas fa-cloud-upload-alt"></i>

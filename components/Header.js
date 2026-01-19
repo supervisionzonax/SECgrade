@@ -23,13 +23,7 @@ export default function Header() {
 		e.preventDefault();
 		// Marcar que estamos refrescando
 		sessionStorage.setItem("isRefreshing", "true");
-		// Ocultar contenido inmediatamente
-		if (document.body) {
-			document.body.style.opacity = "0";
-			document.body.style.pointerEvents = "none";
-			document.body.style.transition = "opacity 0.05s ease";
-		}
-		// Recargar inmediatamente
+		// Recargar inmediatamente sin transiciones
 		window.location.reload();
 	};
 
@@ -91,6 +85,14 @@ export default function Header() {
 						>
 							<i className="fas fa-chart-bar"></i>
 							<span>Preparar Resultados</span>
+						</a>
+						<a
+							href="/rosa-isela"
+							className={`nav-link ${pathname === "/rosa-isela" ? "active" : ""}`}
+							onClick={() => setMobileMenuOpen(false)}
+						>
+							<i className="fas fa-tags"></i>
+							<span>Rosa Isela</span>
 						</a>
 					</nav>
 				</div>

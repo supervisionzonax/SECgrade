@@ -559,6 +559,7 @@ export default function PrepararListas() {
 				.page-header .subtitle {
 					margin-bottom: 0;
 					margin-top: 0.5rem;
+					font-size: clamp(0.85rem, 2vw, 1rem);
 				}
 
 				.file-info-card {
@@ -773,8 +774,18 @@ export default function PrepararListas() {
 				}
 
 				.info-alert {
-					margin-bottom: 1.5rem;
-					padding: 1rem;
+					margin-bottom: 0.3rem;
+					padding: 0.5rem;
+				}
+
+				.info-alert h3 {
+					font-size: 0.8rem;
+					margin-bottom: 0.2rem;
+				}
+
+				.info-alert p {
+					font-size: 0.7rem;
+					line-height: 1.25;
 				}
 
 				.file-upload {
@@ -862,6 +873,68 @@ export default function PrepararListas() {
 				}
 
 				@media (max-width: 768px) {
+					.page-header {
+						margin-top: 0.75rem;
+						margin-bottom: 1rem;
+					}
+
+					.page-header .title {
+						font-size: clamp(1.2rem, 3vw, 1.4rem) !important;
+					}
+
+					.page-header .subtitle {
+						font-size: clamp(0.8rem, 2vw, 0.9rem) !important;
+					}
+
+					.info-alert {
+						margin-bottom: 0.4rem;
+						padding: 0.6rem;
+					}
+
+					.info-alert h3 {
+						font-size: 0.85rem;
+						margin-bottom: 0.25rem;
+					}
+
+					.info-alert p {
+						font-size: 0.75rem;
+						line-height: 1.3;
+					}
+				}
+
+				@media (max-width: 480px) {
+					.info-alert {
+						margin-bottom: 0.25rem !important;
+						padding: 0.4rem !important;
+					}
+
+					.info-alert h3 {
+						font-size: 0.75rem !important;
+						margin-bottom: 0.15rem !important;
+					}
+
+					.info-alert p {
+						font-size: 0.65rem !important;
+						line-height: 1.2 !important;
+					}
+				}
+
+				@media (max-width: 360px) {
+					.info-alert {
+						margin-bottom: 0.25rem;
+						padding: 0.45rem;
+					}
+
+					.info-alert h3 {
+						font-size: 0.75rem;
+						margin-bottom: 0.15rem;
+					}
+
+					.info-alert p {
+						font-size: 0.65rem;
+						line-height: 1.2;
+					}
+
 					.grupos-section {
 						padding: 1rem;
 					}

@@ -10,31 +10,39 @@ export default function PageLoader() {
 		// Marcar como montado solo en el cliente
 		setMounted(true);
 
-		// Verificar si hay un refresh en progreso solo en el cliente
+		// Marcar body y html como loaded INMEDIATAMENTE al montar para evitar reflow
 		if (typeof window !== "undefined") {
+			// Usar requestAnimationFrame para asegurar que se ejecute después del primer render
+			requestAnimationFrame(() => {
+				if (document.body) {
+					document.body.classList.add("loaded");
+				}
+				if (document.documentElement) {
+					document.documentElement.classList.add("loaded");
+					document.documentElement.classList.remove("loading");
+				}
+			});
+
+			// Verificar si hay un refresh en progreso solo en el cliente
 			const isRefreshing = sessionStorage.getItem("isRefreshing");
 			if (isRefreshing === "true") {
 				setIsLoading(true);
-				// Ocultar contenido mientras carga
-				if (document.body) {
-					document.body.style.opacity = "0";
-				}
 			}
 		}
 
 		// Ocultar loading cuando la página termine de cargar
 		const handleLoad = () => {
-			setTimeout(() => {
+			if (typeof window !== "undefined") {
 				setIsLoading(false);
-				if (typeof window !== "undefined") {
-					sessionStorage.removeItem("isRefreshing");
-				}
+				sessionStorage.removeItem("isRefreshing");
+				// Asegurar que body esté visible
 				if (document.body) {
-					document.body.style.opacity = "1";
-					document.body.style.pointerEvents = "auto";
+					document.body.classList.add("loaded");
+					document.body.style.opacity = "";
+					document.body.style.pointerEvents = "";
 					document.body.style.transition = "";
 				}
-			}, 300);
+			}
 		};
 
 		if (typeof window !== "undefined") {
