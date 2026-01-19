@@ -2,13 +2,20 @@ import "./globals.css";
 import PageLoader from "../components/PageLoader";
 
 export const metadata = {
-	title: "SEC Sonora - RAF",
-	description: "RAF Sec x ZipGrade",
+	title: "SEC Sonora - RAF | ZipGrade",
+	description: "Sistema de gestión de evaluaciones con ZipGrade - Secretaría de Educación y Cultura del Estado de Sonora",
 	viewport: {
 		width: "device-width",
 		initialScale: 1,
 		maximumScale: 1,
 		userScalable: false,
+	},
+	icons: {
+		icon: '/faviconsonora.png',
+		apple: '/faviconsonora.png',
+	},
+	other: {
+		'Content-Security-Policy': "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none';",
 	},
 };
 

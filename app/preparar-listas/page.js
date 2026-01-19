@@ -41,14 +41,56 @@ export default function PrepararListas() {
 				body: formData,
 			});
 
-			const responseText = await response.text();
-			if (!responseText || responseText.trim() === "") {
-				throw new Error("El servidor retornó una respuesta vacía");
+			if (!response.ok) {
+				let errorMessage = `Error ${response.status}: ${response.statusText}`;
+				let errorDetails = null;
+				try {
+					const errorText = await response.text();
+					if (errorText) {
+						try {
+							const errorData = JSON.parse(errorText);
+							errorMessage = errorData.error || errorData.details || errorMessage;
+							errorDetails = errorData.details || errorData.stack;
+						} catch (parseError) {
+							// Si no es JSON, usar el texto directamente
+							errorMessage = errorText || errorMessage;
+						}
+					}
+				} catch (e) {
+					console.error("Error al procesar respuesta de error:", e);
+				}
+				
+				// Mensajes más amigables según el código de estado
+				if (response.status === 500) {
+					errorMessage = "Error interno del servidor. Por favor, verifique que el archivo no esté corrupto y vuelva a intentar.";
+				} else if (response.status === 400) {
+					// El mensaje ya viene del servidor, solo asegurarse de que sea claro
+					if (!errorMessage || errorMessage.includes("Error 400")) {
+						errorMessage = "El archivo no es válido o está corrupto. Por favor, verifique el formato.";
+					}
+				}
+				
+				const finalError = new Error(errorMessage);
+				if (errorDetails && process.env.NODE_ENV === 'development') {
+					console.error("Detalles del error:", errorDetails);
+				}
+				throw finalError;
 			}
 
-			const data = JSON.parse(responseText);
+			const responseText = await response.text();
+			if (!responseText || responseText.trim() === "") {
+				throw new Error("El servidor retornó una respuesta vacía. Por favor, verifique que el archivo no esté corrupto.");
+			}
 
-			if (!response.ok || !data.success) {
+			let data;
+			try {
+				data = JSON.parse(responseText);
+			} catch (parseError) {
+				console.error("Error al parsear respuesta:", parseError);
+				throw new Error("Error al procesar la respuesta del servidor. Por favor, intente nuevamente.");
+			}
+
+			if (!data.success) {
 				throw new Error(data.error || "Error al procesar el archivo");
 			}
 
@@ -500,6 +542,15 @@ export default function PrepararListas() {
 			</main>
 
 			<style jsx>{`
+				.container {
+					scrollbar-width: none; /* Firefox */
+					-ms-overflow-style: none; /* IE y Edge */
+				}
+
+				.container::-webkit-scrollbar {
+					display: none; /* Chrome, Safari y Opera */
+				}
+
 				.page-header {
 					margin-bottom: 1.5rem;
 					margin-top: 1rem;
@@ -585,10 +636,10 @@ export default function PrepararListas() {
 				.grupos-section {
 					margin-top: 1rem;
 					padding: 1.25rem;
-					background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, white 100%);
+					background: var(--primary-lightest);
 					border-radius: var(--radius-lg);
-					border: 2px solid var(--primary-light);
-					box-shadow: var(--shadow-md);
+					border: 1px solid rgba(230, 81, 0, 0.15);
+					box-shadow: var(--shadow-sm);
 				}
 
 				.grupos-header {
@@ -654,7 +705,7 @@ export default function PrepararListas() {
 					line-height: 1.5;
 					color: var(--gray);
 					padding: 0.75rem;
-					background: rgba(99, 102, 241, 0.05);
+					background: var(--primary-lightest);
 					border-radius: var(--radius-md);
 					border-left: 3px solid var(--primary);
 				}

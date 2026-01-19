@@ -1,5 +1,14 @@
-import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
+
+// Función helper para crear respuestas JSON
+function jsonResponse(data, status = 200) {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+}
 
 function detectGroupsFromWorkbook(workbook) {
 	if (!workbook || !workbook.SheetNames) return [];
@@ -13,38 +22,126 @@ function detectGroupsFromWorkbook(workbook) {
 function countTotalStudents(workbook) {
 	let total = 0;
 
-	workbook.SheetNames.forEach((sheetName) => {
-		const worksheet = workbook.Sheets[sheetName];
-		const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-		const hasHeaders =
-			data[0]?.[0]?.toString().toLowerCase().includes("apellido") ||
-			data[0]?.[1]?.toString().toLowerCase().includes("nombre");
-		const startRow = hasHeaders ? 1 : 0;
-
-		for (let i = startRow; i < data.length; i++) {
-			const row = data[i];
-			if (row && (row[0] || row[1])) {
-				total++;
-			}
+	try {
+		if (!workbook || !workbook.SheetNames || !Array.isArray(workbook.SheetNames)) {
+			return 0;
 		}
-	});
+
+		workbook.SheetNames.forEach((sheetName) => {
+			try {
+				const worksheet = workbook.Sheets[sheetName];
+				if (!worksheet) return;
+
+				const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+				if (!data || !Array.isArray(data) || data.length === 0) return;
+
+				// Validar que la primera fila existe antes de acceder
+				const firstRow = data[0];
+				const hasHeaders = firstRow && Array.isArray(firstRow) && (
+					(firstRow[0] && String(firstRow[0]).toLowerCase().includes("apellido")) ||
+					(firstRow[1] && String(firstRow[1]).toLowerCase().includes("nombre"))
+				);
+				const startRow = hasHeaders ? 1 : 0;
+
+				for (let i = startRow; i < data.length; i++) {
+					const row = data[i];
+					if (row && Array.isArray(row) && (row[0] || row[1])) {
+						total++;
+					}
+				}
+			} catch (sheetError) {
+				console.error(`Error procesando hoja ${sheetName}:`, sheetError);
+				// Continuar con la siguiente hoja
+			}
+		});
+	} catch (error) {
+		console.error("Error en countTotalStudents:", error);
+	}
 
 	return total;
 }
 
 export async function POST(request) {
+	console.log("=== INICIO detect-groups API ===");
+	
 	try {
-		const formData = await request.formData();
+		let formData;
+		try {
+			console.log("Leyendo FormData...");
+			formData = await request.formData();
+			console.log("FormData leído correctamente");
+		} catch (formError) {
+			console.error("Error al leer FormData:", formError);
+			console.error("FormError stack:", formError.stack);
+			return jsonResponse(
+				{
+					success: false,
+					error: "Error al procesar el formulario",
+					details: process.env.NODE_ENV === "development" ? formError.message : undefined,
+				},
+				400
+			);
+		}
+
+		if (!formData) {
+			return jsonResponse(
+				{
+					success: false,
+					error: "No se pudo leer el formulario",
+				},
+				400
+			);
+		}
+
+		console.log("Obteniendo archivo del FormData...");
 		const file = formData.get("file");
+		console.log("Archivo obtenido:", file ? `Nombre: ${file.name}, Tamaño: ${file.size}` : "null");
 
 		if (!file) {
-			return NextResponse.json(
+			console.error("No se proporcionó archivo");
+			return jsonResponse(
 				{
 					success: false,
 					error: "No se proporcionó archivo",
 				},
-				{ status: 400 }
+				400
+			);
+		}
+
+		// Validar que el archivo tenga un nombre válido
+		if (!file.name || typeof file.name !== 'string') {
+			console.error("El archivo no tiene un nombre válido:", file.name);
+			return jsonResponse(
+				{
+					success: false,
+					error: "El archivo no tiene un nombre válido",
+				},
+				400
+			);
+		}
+		
+		console.log("Nombre del archivo:", file.name);
+
+		// Validar tamaño del archivo (máximo 50MB)
+		const maxSize = 50 * 1024 * 1024; // 50MB
+		if (file.size > maxSize) {
+			return jsonResponse(
+				{
+					success: false,
+					error: "El archivo es demasiado grande. El tamaño máximo es 50MB",
+				},
+				400
+			);
+		}
+
+		if (file.size === 0) {
+			return jsonResponse(
+				{
+					success: false,
+					error: "El archivo está vacío",
+				},
+				400
 			);
 		}
 
@@ -52,71 +149,146 @@ export async function POST(request) {
 		const fileExtension = "." + file.name.toLowerCase().split(".").pop();
 
 		if (!validExtensions.includes(fileExtension)) {
-			return NextResponse.json(
+			return jsonResponse(
 				{
 					success: false,
 					error: `Formato no compatible. Use: ${validExtensions.join(", ")}`,
 				},
-				{ status: 400 }
+				400
 			);
 		}
 
-		const buffer = await file.arrayBuffer();
+		let buffer;
+		try {
+			console.log("Leyendo buffer del archivo...");
+			// Leer el archivo como ArrayBuffer
+			buffer = await file.arrayBuffer();
+			console.log("Buffer leído. Tamaño:", buffer.byteLength, "bytes");
+			
+			// Validar que el buffer se haya leído correctamente
+			if (!buffer) {
+				throw new Error("No se pudo leer el contenido del archivo");
+			}
+			
+			if (buffer.byteLength === 0) {
+				throw new Error("El archivo está vacío");
+			}
+			
+			// Validar tamaño mínimo (al menos algunos bytes para ser un archivo válido)
+			if (buffer.byteLength < 10) {
+				throw new Error("El archivo es demasiado pequeño para ser válido");
+			}
+		} catch (bufferError) {
+			console.error("Error al leer buffer del archivo:", bufferError);
+			console.error("Tipo de error:", bufferError.name);
+			console.error("Mensaje:", bufferError.message);
+			console.error("Stack:", bufferError.stack);
+			return jsonResponse(
+				{
+					success: false,
+					error: bufferError.message || "Error al leer el archivo. Verifique que el archivo no esté corrupto.",
+					details: process.env.NODE_ENV === "development" ? bufferError.message : undefined,
+				},
+				400
+			);
+		}
+
 		let workbook;
 
 		try {
+			console.log("Procesando archivo con extensión:", fileExtension);
+			console.log("Usando biblioteca XLSX...");
+			
 			if (fileExtension === ".csv") {
+				console.log("Procesando como CSV...");
 				const data = new TextDecoder("utf-8").decode(buffer);
 				workbook = XLSX.read(data, {
 					type: "string",
 					codepage: 65001,
 					raw: false,
 					cellDates: true,
+					cellStyles: false,
+					cellNF: false,
+					cellText: false,
+					dense: false,
 				});
 			} else {
+				console.log("Procesando como Excel/ODS...");
 				workbook = XLSX.read(buffer, {
 					type: "buffer",
 					cellDates: true,
 					cellStyles: false,
+					cellNF: false,
+					cellText: false,
+					dense: false,
 				});
 			}
+			console.log("Archivo procesado correctamente. Hojas encontradas:", workbook.SheetNames?.length || 0);
 		} catch (readError) {
-			return NextResponse.json(
+			console.error("Error al leer archivo Excel:", readError);
+			console.error("Error name:", readError.name);
+			console.error("Error message:", readError.message);
+			console.error("Stack:", readError.stack);
+			return jsonResponse(
 				{
 					success: false,
-					error: "No se pudo leer el archivo. Verifique que no esté corrupto.",
-					details: readError.message,
+					error: "No se pudo leer el archivo. Verifique que no esté corrupto y que sea un archivo Excel válido.",
+					details: process.env.NODE_ENV === "development" ? readError.message : undefined,
+					stack: process.env.NODE_ENV === "development" ? readError.stack : undefined,
 				},
-				{ status: 400 }
+				400
 			);
 		}
 
 		if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-			return NextResponse.json(
+			return jsonResponse(
 				{
 					success: false,
 					error: "El archivo no contiene hojas válidas.",
 				},
-				{ status: 400 }
+				400
 			);
 		}
 
-		const detectedGroups = detectGroupsFromWorkbook(workbook);
+		let detectedGroups;
+		try {
+			detectedGroups = detectGroupsFromWorkbook(workbook);
+		} catch (detectError) {
+			console.error("Error al detectar grupos:", detectError);
+			return jsonResponse(
+				{
+					success: false,
+					error: "Error al procesar las hojas del archivo",
+					details: process.env.NODE_ENV === "development" ? detectError.message : undefined,
+				},
+				400
+			);
+		}
 
-		if (detectedGroups.length === 0) {
-			return NextResponse.json(
+		if (!detectedGroups || detectedGroups.length === 0) {
+			return jsonResponse(
 				{
 					success: false,
 					error:
 						"No se detectaron grupos. Asegúrese de que cada grupo esté en una hoja separada.",
 				},
-				{ status: 400 }
+				400
 			);
 		}
 
-		const totalStudents = countTotalStudents(workbook);
+		let totalStudents = 0;
+		try {
+			totalStudents = countTotalStudents(workbook);
+		} catch (countError) {
+			console.error("Error al contar estudiantes:", countError);
+			// Continuar con totalStudents = 0 si hay error
+		}
 
-		return NextResponse.json({
+		console.log("=== ÉXITO detect-groups API ===");
+		console.log("Grupos detectados:", detectedGroups.length);
+		console.log("Total estudiantes:", totalStudents);
+		
+		return jsonResponse({
 			success: true,
 			grupos: detectedGroups,
 			totalEstudiantes: totalStudents,
@@ -125,14 +297,36 @@ export async function POST(request) {
 			estudiantesDetectados: totalStudents,
 		});
 	} catch (error) {
+		console.error("=== ERROR CRÍTICO en detect-groups ===");
 		console.error("Error en detect-groups:", error);
-		return NextResponse.json(
-			{
-				success: false,
-				error: "Error interno del servidor al procesar el archivo",
-				details: process.env.NODE_ENV === "development" ? error.message : undefined,
-			},
-			{ status: 500 }
-		);
+		console.error("Error stack:", error.stack);
+		console.error("Error name:", error.name);
+		console.error("Error message:", error.message);
+		console.error("Error toString:", error.toString());
+		
+		try {
+			return jsonResponse(
+				{
+					success: false,
+					error: "Error interno del servidor al procesar el archivo",
+					details: process.env.NODE_ENV === "development" ? error.message : undefined,
+					stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+				},
+				500
+			);
+		} catch (responseError) {
+			console.error("Error al crear respuesta de error:", responseError);
+			return new Response(
+				JSON.stringify({
+					success: false,
+					error: "Error interno del servidor",
+					details: process.env.NODE_ENV === "development" ? error.message : undefined,
+				}),
+				{
+					status: 500,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
+		}
 	}
 }

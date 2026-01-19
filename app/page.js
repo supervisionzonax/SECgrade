@@ -70,8 +70,14 @@ export default function Home() {
 
 			<style jsx>{`
 				.hero {
-					padding: 0.5rem 0 0 0;
-					margin-bottom: 0.75rem;
+					padding: 1rem 0 0 0;
+					margin-bottom: 0.5rem;
+				}
+
+				.hero-content .title {
+					font-size: clamp(2rem, 5vw, 3rem) !important;
+					margin-top: 1rem;
+					margin-bottom: 1rem;
 				}
 
 				.feature-card-link {
@@ -94,12 +100,13 @@ export default function Home() {
 				}
 
 				.feature-grid {
-					gap: 1rem;
-					margin-top: 0.75rem;
+					gap: 0.5rem;
+					margin-top: 0.5rem;
 				}
 
 				.feature-card {
 					padding: 1.25rem;
+					min-height: 280px;
 					height: 100%;
 					display: flex;
 					flex-direction: column;
@@ -115,14 +122,14 @@ export default function Home() {
 				}
 
 				.feature-icon {
-					width: 60px;
-					height: 60px;
+					width: 56px;
+					height: 56px;
 					font-size: 1.5rem;
 					margin-bottom: 0.75rem;
 				}
 
 				.feature-card h3 {
-					font-size: 1.15rem;
+					font-size: 1.1rem;
 					margin-bottom: 0.5rem;
 					text-decoration: none !important;
 					text-decoration-line: none !important;
@@ -141,33 +148,35 @@ export default function Home() {
 				}
 
 				.info-alert {
-					margin-bottom: 0.75rem;
+					margin-bottom: 0.5rem;
 					padding: 0.75rem;
 				}
 
 				.info-alert h3 {
-					font-size: 0.95rem;
-					margin-bottom: 0.3rem;
+					font-size: 0.9rem;
+					margin-bottom: 0.25rem;
 				}
 
 				.info-alert p {
-					font-size: 0.85rem;
-					line-height: 1.4;
+					font-size: 0.8rem;
+					line-height: 1.3;
 				}
 
 				@media (max-width: 768px) {
 					.hero {
 						padding: 0.75rem 0 0 0;
-						margin-bottom: 0.75rem;
+						margin-bottom: 0.5rem;
 					}
 
 					.hero-content .title {
-						font-size: 1.75rem;
+						font-size: 2rem !important;
+						margin-top: 0.75rem;
+						margin-bottom: 0.75rem;
 					}
 
 					.info-alert {
-						margin-bottom: 0.75rem;
-						padding: 1rem;
+						margin-bottom: 0.5rem;
+						padding: 0.75rem;
 					}
 
 					.info-alert h3 {
@@ -181,13 +190,13 @@ export default function Home() {
 					}
 
 					.feature-grid {
-						gap: 1rem;
-						margin-top: 0.75rem;
+						gap: 0.5rem;
+						margin-top: 0.5rem;
 					}
 
 					.feature-card {
 						padding: 1.25rem;
-						min-height: auto;
+						min-height: 260px;
 					}
 
 					.feature-icon {
@@ -219,17 +228,18 @@ export default function Home() {
 				@media (max-width: 480px) {
 					.hero {
 						padding: 0.75rem 0 0 0;
-						margin-bottom: 0.75rem;
+						margin-bottom: 0.5rem;
 					}
 
 					.hero-content .title {
-						font-size: 1.5rem;
-						margin-bottom: 0;
+						font-size: 1.75rem !important;
+						margin-top: 0.5rem;
+						margin-bottom: 0.5rem;
 					}
 
 					.info-alert {
-						margin-bottom: 0.75rem;
-						padding: 0.875rem;
+						margin-bottom: 0.5rem;
+						padding: 0.75rem;
 					}
 
 					.info-alert h3 {
@@ -243,13 +253,13 @@ export default function Home() {
 					}
 
 					.feature-grid {
-						gap: 0.875rem;
-						margin-top: 0.75rem;
+						gap: 0.5rem;
+						margin-top: 0.5rem;
 					}
 
 					.feature-card {
 						padding: 1.125rem;
-						min-height: auto;
+						min-height: 240px;
 					}
 
 					.feature-icon {

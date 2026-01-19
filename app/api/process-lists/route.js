@@ -18,15 +18,12 @@ export async function POST(request) {
       )
     }
 
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv'
-    ]
+    const validExtensions = ['.xlsx', '.xls', '.csv', '.ods']
+    const fileExtension = '.' + file.name.toLowerCase().split('.').pop()
     
-    if (!validTypes.includes(file.type)) {
+    if (!validExtensions.includes(fileExtension)) {
       return NextResponse.json(
-        { error: 'Formato de archivo no válido. Solo se aceptan Excel (.xlsx, .xls) o CSV' },
+        { error: `Formato de archivo no válido. Use: ${validExtensions.join(', ')}` },
         { status: 400 }
       )
     }
@@ -34,11 +31,40 @@ export async function POST(request) {
     const buffer = await file.arrayBuffer()
     let workbook
     
-    if (file.type === 'text/csv') {
-      const data = new TextDecoder().decode(buffer)
-      workbook = XLSX.read(data, { type: 'string' })
-    } else {
-      workbook = XLSX.read(buffer, { type: 'buffer' })
+    try {
+      if (fileExtension === '.csv') {
+        const data = new TextDecoder('utf-8').decode(buffer)
+        workbook = XLSX.read(data, { 
+          type: 'string',
+          codepage: 65001,
+          raw: false,
+          cellDates: true,
+          dense: false
+        })
+      } else {
+        workbook = XLSX.read(buffer, { 
+          type: 'buffer',
+          cellDates: true,
+          cellStyles: false,
+          dense: false
+        })
+      }
+    } catch (readError) {
+      console.error('Error al leer archivo:', readError)
+      return NextResponse.json(
+        { 
+          error: 'No se pudo leer el archivo. Verifique que no esté corrupto.',
+          details: process.env.NODE_ENV === 'development' ? readError.message : undefined
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+      return NextResponse.json(
+        { error: 'El archivo no contiene hojas válidas.' },
+        { status: 400 }
+      )
     }
 
     const resultados = []
@@ -46,9 +72,9 @@ export async function POST(request) {
 
     workbook.SheetNames.forEach((sheetName, index) => {
       const worksheet = workbook.Sheets[sheetName]
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' })
       
-      if (data.length < 2) return
+      if (!data || data.length === 0) return
       
       const hasApellidosHeader = data[0]?.[0]?.toString().toLowerCase().includes('apellido')
       const hasNombresHeader = data[0]?.[1]?.toString().toLowerCase().includes('nombre')
@@ -57,21 +83,21 @@ export async function POST(request) {
       let apellidosIndex = 0
       let nombresIndex = 1
       
-      if (startRow === 0) {
+      if (startRow === 0 && data[0]) {
         const primeraFila = data[0]
         primeraFila?.forEach((cell, idx) => {
-          const cellStr = cell?.toString().toLowerCase() || ''
+          const cellStr = (cell || '').toString().toLowerCase()
           if (cellStr.includes('apellido')) apellidosIndex = idx
           if (cellStr.includes('nombre') && !cellStr.includes('apellido')) nombresIndex = idx
         })
       }
 
-      const grupoKey = grupos[index] || `Grupo${index + 1}`
-      const externalRef = externalRefs[grupoKey] || `Z1EST5M${grupoKey}`
+      const grupoKey = grupos[index] || sheetName || `Grupo${index + 1}`
+      const externalRef = externalRefs[grupoKey] || externalRefs[sheetName] || `Z1EST5M${grupoKey.match(/(\d+[A-Za-z])/)?.[0] || grupoKey}`
       
       for (let i = startRow; i < data.length; i++) {
         const row = data[i]
-        if (row && row.length >= Math.max(apellidosIndex, nombresIndex) + 1) {
+        if (row && Array.isArray(row) && row.length >= Math.max(apellidosIndex, nombresIndex) + 1) {
           const apellidos = (row[apellidosIndex] || '').toString().trim()
           const nombres = (row[nombresIndex] || '').toString().trim()
           
@@ -98,25 +124,49 @@ export async function POST(request) {
       )
     }
 
-    const csvContent = [
+    // Función para escapar correctamente los valores CSV y preservar UTF-8
+    const escapeCSVValue = (value) => {
+      if (value === null || value === undefined) return ''
+      const str = String(value)
+      // Si contiene comillas, comas o saltos de línea, envolver en comillas y escapar comillas internas
+      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
+    // Generar CSV con UTF-8 BOM para que Excel lo reconozca correctamente
+    const csvRows = [
       'Student ID,External Ref.,First Name,Last Name,Grade,Class Name',
       ...resultados.map(row => 
-        `${row['Student ID']},${row['External Ref.']},"${row['First Name']}","${row['Last Name']}",${row.Grade},${row['Class Name']}`
+        [
+          row['Student ID'],
+          escapeCSVValue(row['External Ref.']),
+          escapeCSVValue(row['First Name']),
+          escapeCSVValue(row['Last Name']),
+          escapeCSVValue(row.Grade),
+          escapeCSVValue(row['Class Name'])
+        ].join(',')
       )
-    ].join('\n')
+    ]
+    
+    // Agregar BOM UTF-8 al inicio para que Excel reconozca la codificación
+    const BOM = '\uFEFF'
+    const csvContent = BOM + csvRows.join('\n')
 
     return new Response(csvContent, {
       headers: {
-        'Content-Type': 'text/csv',
+        'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="zipgrade_${grado}_${className}_${new Date().getTime()}.csv"`
       }
     })
 
   } catch (error) {
+    console.error('Error en process-lists:', error)
     return NextResponse.json(
       { 
         error: 'Error procesando el archivo',
-        details: error.message 
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
       { status: 500 }
     )
