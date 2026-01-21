@@ -27,16 +27,24 @@ export default function Header() {
 		const isMobile = window.innerWidth < 768;
 		
 		if (isMobile) {
-			// En móvil: redirigir a la página de inicio
-			// Disparar evento personalizado para que el NavigationLoader lo detecte
-			// Usar setTimeout para asegurar que el evento se procese antes de la navegación
-			const navEvent = new CustomEvent('navigation-start', { bubbles: true, cancelable: true });
-			document.dispatchEvent(navEvent);
-			
-			// Pequeño delay para asegurar que el evento se procese
-			setTimeout(() => {
-				router.push("/");
-			}, 10);
+			// En móvil: redirigir a la página de inicio solo si no estamos ya ahí
+			if (pathname !== "/") {
+				const navEvent = new CustomEvent('navigation-start', { bubbles: true, cancelable: true });
+				document.dispatchEvent(navEvent);
+				
+				// Usar router.push con un pequeño delay para asegurar que el evento se procese
+				setTimeout(() => {
+					router.push("/");
+				}, 50);
+			} else {
+				// Si ya estamos en inicio, hacer refresh
+				try {
+					sessionStorage.setItem("isRefreshing", "true");
+				} catch (e) {
+					// sessionStorage no disponible, continuar
+				}
+				window.location.reload();
+			}
 		} else {
 			// En desktop: mantener comportamiento actual (refresh)
 			// Establecer flag para que NavigationLoader muestre el loader

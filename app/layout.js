@@ -22,7 +22,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
 	return (
-		<html lang="es" className="loaded" style={{ height: "100%", overflow: "hidden" }}>
+		<html lang="es" className="loaded" style={{ height: "100%" }}>
 			<head>
 				<script
 					dangerouslySetInnerHTML={{
@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
 				/>
 			</head>
 			<body 
-				style={{ height: "100%", display: "flex", flexDirection: "column", margin: 0, padding: 0, transition: "none", opacity: 1 }}
+				style={{ minHeight: "100%", display: "flex", flexDirection: "column", margin: 0, padding: 0, transition: "none", opacity: 1 }}
 				className="loaded"
 			>
 				<PageLoader />
