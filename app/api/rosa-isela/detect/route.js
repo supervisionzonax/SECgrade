@@ -378,6 +378,55 @@ export async function POST(request) {
 
 			console.log("Max pregunta con datos reales:", maxPreguntaConDatos);
 
+			// Contar preguntas consecutivas desde 1 hasta encontrar un gap o hasta el máximo con datos
+			// Esto asegura que si hay Stu1-Stu30 pero también Stu31 (vacía), solo cuente hasta 30
+			let totalPreguntasConsecutivas = 0;
+			if (columnasStu.length > 0 && rows.length > 1) {
+				// Ordenar por número de pregunta ascendente
+				const columnasStuOrdenadas = [...columnasStu].sort((a, b) => a.numPregunta - b.numPregunta);
+				
+				// Verificar preguntas consecutivas desde 1
+				for (let i = 0; i < columnasStuOrdenadas.length; i++) {
+					const colStu = columnasStuOrdenadas[i];
+					const numPreguntaEsperada = i + 1;
+					
+					// Si el número de pregunta no coincide con el esperado consecutivo, detener
+					if (colStu.numPregunta !== numPreguntaEsperada) {
+						break;
+					}
+					
+					// Verificar si esta pregunta tiene datos
+					const colIndex = colStu.colIndex;
+					let tieneDatos = false;
+					
+					for (let rowIndex = 1; rowIndex < rows.length && rowIndex < 51; rowIndex++) {
+						const row = rows[rowIndex];
+						if (!row || !Array.isArray(row)) continue;
+						
+						if (colIndex < row.length) {
+							const valor = row[colIndex];
+							if (valor !== null && valor !== undefined && valor !== "" && String(valor).trim() !== "") {
+								tieneDatos = true;
+								break;
+							}
+						}
+					}
+					
+					// Si tiene datos, incrementar contador; si no, detener
+					if (tieneDatos) {
+						totalPreguntasConsecutivas = numPreguntaEsperada;
+					} else {
+						break;
+					}
+				}
+			}
+
+			// Si encontramos preguntas consecutivas, usarlas; sino usar maxPreguntaConDatos
+			if (totalPreguntasConsecutivas > 0) {
+				maxPreguntaConDatos = totalPreguntasConsecutivas;
+				console.log("Total preguntas consecutivas con datos:", totalPreguntasConsecutivas);
+			}
+
 			// Si no encontramos datos en ninguna columna StuX, buscar otros patrones como fallback
 			if (maxPreguntaConDatos === 0) {
 				maxPreguntaConDatos = maxPreguntaDetectada; // Usar el máximo detectado
