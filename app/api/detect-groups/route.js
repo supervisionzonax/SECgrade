@@ -250,6 +250,46 @@ export async function POST(request) {
 			);
 		}
 
+		// Validar formato del archivo: debe tener columnas Apellidos y Nombres
+		let formatoValido = false;
+		try {
+			for (const sheetName of workbook.SheetNames) {
+				const worksheet = workbook.Sheets[sheetName];
+				if (!worksheet) continue;
+
+				const data = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+				if (!data || !Array.isArray(data) || data.length === 0) continue;
+
+				const firstRow = data[0];
+				if (!firstRow || !Array.isArray(firstRow)) continue;
+
+				// Buscar columnas Apellidos y Nombres (pueden estar en cualquier orden)
+				const hasApellidos = firstRow.some(cell => 
+					cell && String(cell).toLowerCase().includes("apellido")
+				);
+				const hasNombres = firstRow.some(cell => 
+					cell && String(cell).toLowerCase().includes("nombre")
+				);
+
+				if (hasApellidos && hasNombres) {
+					formatoValido = true;
+					break;
+				}
+			}
+		} catch (validationError) {
+			console.error("Error validando formato:", validationError);
+		}
+
+		if (!formatoValido) {
+			return jsonResponse(
+				{
+					success: false,
+					error: "El formato del archivo no es válido. Por favor, verifique que el archivo contenga las columnas 'Apellidos' y 'Nombres' y vuelva a intentarlo.",
+				},
+				400
+			);
+		}
+
 		let detectedGroups;
 		try {
 			detectedGroups = detectGroupsFromWorkbook(workbook);

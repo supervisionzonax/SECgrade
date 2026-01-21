@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
 export async function POST(request) {
-	console.log("=== INICIO detect API ===");
-	
 	try {
 		let formData;
 		try {
@@ -213,6 +211,7 @@ export async function POST(request) {
 			);
 		}
 
+		// Procesar header EXACTAMENTE igual que Rosa Isela
 		const headerRow = rows[0];
 		if (!headerRow || !Array.isArray(headerRow)) {
 			return NextResponse.json(
@@ -262,7 +261,8 @@ export async function POST(request) {
 			);
 		}
 
-		// Validar formato ZipGrade: debe tener al menos una columna StuX, PointsX, MarkX o PriKeyX
+		// Validar formato ZipGrade: EXACTAMENTE igual que Rosa Isela
+		// Debe tener al menos una columna StuX, PointsX, MarkX o PriKeyX
 		const patronesZipGrade = [
 			/^Stu(\d+)$/i,      // Stu1, Stu2, etc.
 			/^Points(\d+)$/i,   // Points1, Points2, etc.
@@ -271,11 +271,16 @@ export async function POST(request) {
 		];
 
 		let tieneFormatoZipGrade = false;
+		console.log("=== VALIDATE-ZIPGRADE DEBUG ===");
+		console.log("Header length:", header.length);
+		console.log("Primeras 20 columnas:", header.slice(0, 20));
+		
 		for (const colName of header) {
 			try {
 				if (!colName || typeof colName !== "string") continue;
 				for (const patron of patronesZipGrade) {
 					if (patron.test(colName)) {
+						console.log("✓ Columna encontrada que coincide:", colName);
 						tieneFormatoZipGrade = true;
 						break;
 					}
@@ -286,7 +291,12 @@ export async function POST(request) {
 			}
 		}
 
+		console.log("tieneFormatoZipGrade:", tieneFormatoZipGrade);
+
 		if (!tieneFormatoZipGrade) {
+			console.error("Archivo rechazado: No tiene formato ZipGrade");
+			console.error("Total columnas:", header.length);
+			console.error("Primeras 30 columnas:", header.slice(0, 30));
 			return NextResponse.json(
 				{
 					success: false,
@@ -296,162 +306,31 @@ export async function POST(request) {
 			);
 		}
 
-		// Buscar columnas de preguntas en formato ZipGrade
-		let maxPreguntaDetectada = 0;
-		let maxPreguntaConDatos = 0;
-
-		// También patrones genéricos
-		const patronesGenericos = [
-			/^Q(\d+)$/i,
-			/^Q(\d+)_Correct$/i,
-			/^Q(\d+)_Answer$/i,
-			/^Pregunta(\d+)$/i,
-			/^Question(\d+)$/i,
-		];
-
+		console.log("✓ Archivo aceptado. Formato ZipGrade válido.");
+		// Archivo válido - retornar éxito
 		try {
-			// PRIORIDAD 1: Buscar SOLO columnas StuX (Stu1, Stu2, ... Stu40)
-			// Estas son las únicas que realmente indican el número de pregunta real
-			// Cada pregunta tiene 4 columnas: StuX, PointsX, MarkX, PriKeyX
-			// Pero solo StuX indica la pregunta real del examen
-			const patronStu = /^Stu(\d+)$/i;
-			
-			// Primero encontrar todas las columnas StuX y su índice en el header
-			const columnasStu = [];
-			for (let i = 0; i < header.length; i++) {
-				const colName = header[i];
-				try {
-					if (!colName || typeof colName !== "string") continue;
-					
-					const match = colName.match(patronStu);
-					if (match && match[1]) {
-						const numPregunta = parseInt(match[1], 10);
-						if (!isNaN(numPregunta)) {
-							columnasStu.push({ numPregunta, colIndex: i });
-							if (numPregunta > maxPreguntaDetectada) {
-								maxPreguntaDetectada = numPregunta;
-							}
-						}
-					}
-				} catch (colError) {
-					console.error("Error procesando columna Stu:", colName, colError);
-					continue;
-				}
-			}
-
-			console.log("Max pregunta detectada (StuX):", maxPreguntaDetectada);
-			console.log("Total columnas StuX encontradas:", columnasStu.length);
-
-			// Ahora verificar cuántas columnas realmente tienen datos
-			// Iterar desde la pregunta más alta hacia abajo para encontrar la última con datos
-			if (columnasStu.length > 0 && rows.length > 1) {
-				// Ordenar por número de pregunta descendente
-				columnasStu.sort((a, b) => b.numPregunta - a.numPregunta);
-				
-				// Verificar cada columna de mayor a menor hasta encontrar una con datos
-				for (const colStu of columnasStu) {
-					const colIndex = colStu.colIndex;
-					let tieneDatos = false;
-					
-					// Revisar las primeras 50 filas de datos (excluyendo header) para ver si hay datos
-					for (let rowIndex = 1; rowIndex < rows.length && rowIndex < 51; rowIndex++) {
-						const row = rows[rowIndex];
-						if (!row || !Array.isArray(row)) continue;
-						
-						if (colIndex < row.length) {
-							const valor = row[colIndex];
-							// Considerar que tiene datos si el valor no está vacío, null, undefined, o solo espacios
-							if (valor !== null && valor !== undefined && valor !== "" && String(valor).trim() !== "") {
-								tieneDatos = true;
-								break;
-							}
-						}
-					}
-					
-					if (tieneDatos) {
-						maxPreguntaConDatos = colStu.numPregunta;
-						console.log(`Pregunta ${colStu.numPregunta} tiene datos`);
-						break; // Encontramos la última pregunta con datos
-					}
-				}
-			}
-
-			console.log("Max pregunta con datos reales:", maxPreguntaConDatos);
-
-			// Si no encontramos datos en ninguna columna StuX, buscar otros patrones como fallback
-			if (maxPreguntaConDatos === 0) {
-				maxPreguntaConDatos = maxPreguntaDetectada; // Usar el máximo detectado
-				
-				// Si tampoco encontramos StuX, buscar otros patrones ZipGrade
-				if (maxPreguntaDetectada === 0) {
-					for (const colName of header) {
-						try {
-							if (!colName || typeof colName !== "string") continue;
-							
-							for (const patron of patronesZipGrade) {
-								const match = colName.match(patron);
-								if (match && match[1]) {
-									const numPregunta = parseInt(match[1], 10);
-									if (!isNaN(numPregunta) && numPregunta > maxPreguntaConDatos) {
-										maxPreguntaConDatos = numPregunta;
-									}
-									break;
-								}
-							}
-						} catch (colError) {
-							console.error("Error procesando columna ZipGrade:", colName, colError);
-							continue;
-						}
-					}
-					console.log("Max pregunta detectada (ZipGrade fallback):", maxPreguntaConDatos);
-				}
-			}
-		} catch (patternError) {
-			console.error("Error al buscar patrones:", patternError);
-			console.error("Stack:", patternError.stack);
-			// Continuar con maxPreguntaConDatos = 0 y usar el valor por defecto
-		}
-
-		// Usar maxPreguntaConDatos si tiene valor, sino maxPreguntaDetectada, sino 30 por defecto
-		const totalPreguntas = maxPreguntaConDatos > 0 ? maxPreguntaConDatos : (maxPreguntaDetectada > 0 ? maxPreguntaDetectada : 30);
-
-		console.log("Max pregunta detectada:", maxPreguntaDetectada);
-		console.log("Max pregunta con datos:", maxPreguntaConDatos);
-		console.log("Total de preguntas a retornar:", totalPreguntas);
-		console.log("=== FIN detect API (éxito) ===");
-
-		// Preparar resultado - solo datos esenciales para evitar problemas de serialización
-		console.log("Preparando respuesta. totalPreguntas:", totalPreguntas);
-
-		// Crear objeto simple y serializable
-		const result = {
-			success: true,
-			totalPreguntas: totalPreguntas,
-			maxPreguntaDetectada: maxPreguntaDetectada,
-			maxPreguntaConDatos: maxPreguntaConDatos,
-		};
-
-		console.log("Resultado preparado. Objeto:", JSON.stringify(result));
-
-		// Verificar si NextResponse.json está disponible, si no usar Response directamente
-		if (typeof NextResponse?.json === 'function') {
-			return NextResponse.json(result);
-		} else {
-			console.warn("NextResponse.json no está disponible, usando Response directamente");
-			return new Response(JSON.stringify(result), {
-				status: 200,
-				headers: {
-					"Content-Type": "application/json",
-				},
+			return NextResponse.json({
+				success: true,
 			});
+		} catch (nextResponseError) {
+			console.error("Error usando NextResponse.json, usando Response directamente:", nextResponseError);
+			return new Response(
+				JSON.stringify({
+					success: true,
+				}),
+				{
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				}
+			);
 		}
 	} catch (error) {
-		console.error("=== ERROR en detect API ===");
+		console.error("=== ERROR en validate-zipgrade API ===");
 		console.error("Error:", error);
 		console.error("Error name:", error?.name);
 		console.error("Error message:", error?.message);
-		console.error("Stack trace:", error?.stack);
-		console.error("=== FIN detect API (error) ===");
+		console.error("Error stack:", error?.stack);
+		console.error("=== FIN validate-zipgrade API (error) ===");
 		
 		// Si NextResponse.json falla, usar Response directamente
 		try {

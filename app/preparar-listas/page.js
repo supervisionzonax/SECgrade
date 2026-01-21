@@ -2,6 +2,7 @@
 import { useState } from "react";
 import FileUpload from "../../components/FileUpload";
 import Header from "../../components/Header";
+import ProcessingLoader from "../../components/ProcessingLoader";
 
 export default function PrepararListas() {
 	const [file, setFile] = useState(null);
@@ -108,6 +109,33 @@ export default function PrepararListas() {
 			setGrupos(detectedGroups);
 			setDetectedStudents(totalStudents);
 
+			// Detectar automáticamente el grado basándose en el número del grupo
+			// Buscar el primer número (1, 2, o 3) en los nombres de los grupos
+			let detectedGrado = "";
+			for (const grupo of detectedGroups) {
+				// Buscar el primer dígito en el nombre del grupo
+				const match = grupo.match(/^(\d+)/);
+				if (match) {
+					const numero = parseInt(match[1], 10);
+					if (numero >= 1 && numero <= 3) {
+						// Mapear el número al código de grado
+						if (numero === 1) {
+							detectedGrado = "1SEC";
+						} else if (numero === 2) {
+							detectedGrado = "2SEC";
+						} else if (numero === 3) {
+							detectedGrado = "3SEC";
+						}
+						break; // Usar el primer grupo que tenga un número válido
+					}
+				}
+			}
+			
+			// Establecer el grado detectado si se encontró uno
+			if (detectedGrado) {
+				setGrado(detectedGrado);
+			}
+
 			const initialRefs = {};
 			detectedGroups.forEach((grupo) => {
 				const grupoSimple = grupo.match(/(\d+[A-Za-z])/)?.[0] || grupo;
@@ -180,13 +208,18 @@ export default function PrepararListas() {
 		setIsProcessing(true);
 
 		try {
+			// Validar y normalizar startStudentId antes de enviar
+			const validStartStudentId = (startStudentId === "" || startStudentId === null || startStudentId === undefined || isNaN(parseInt(startStudentId, 10))) 
+				? 1 
+				: Math.max(1, parseInt(startStudentId, 10));
+
 			const formData = new FormData();
 			formData.append("file", file);
 			formData.append("grado", grado);
 			formData.append("className", className);
 			formData.append("grupos", JSON.stringify(grupos));
 			formData.append("externalRefs", JSON.stringify(externalRefs));
-			formData.append("startStudentId", startStudentId.toString());
+			formData.append("startStudentId", validStartStudentId.toString());
 
 			const response = await fetch("/api/process-lists", {
 				method: "POST",
@@ -262,6 +295,7 @@ export default function PrepararListas() {
 
 	return (
 		<>
+			{isProcessing && <ProcessingLoader />}
 			<Header />
 
 			<main className="main">
@@ -416,10 +450,32 @@ export default function PrepararListas() {
 										type="number"
 										id="start-student-id"
 										min="1"
-										value={startStudentId}
+										value={startStudentId === "" || startStudentId === null || startStudentId === undefined ? "" : String(startStudentId)}
 										onChange={(e) => {
-											const value = parseInt(e.target.value, 10) || 1;
-											setStartStudentId(value < 1 ? 1 : value);
+											const valor = e.target.value;
+											// Permitir cualquier valor mientras el usuario escribe, incluyendo cadena vacía
+											if (valor === null || valor === undefined || valor === "") {
+												setStartStudentId("");
+											} else {
+												// Si hay un valor, guardarlo como está (permite escribir parcialmente)
+												const num = parseInt(valor, 10);
+												if (!isNaN(num)) {
+													setStartStudentId(num < 1 ? "" : num);
+												} else {
+													setStartStudentId("");
+												}
+											}
+										}}
+										onBlur={(e) => {
+											// Cuando pierde el foco, validar y normalizar
+											const valor = e.target.value;
+											if (valor === "" || isNaN(parseInt(valor, 10))) {
+												// Si está vacío o no es un número válido, establecer a 1 por defecto
+												setStartStudentId(1);
+											} else {
+												const num = parseInt(valor, 10);
+												setStartStudentId(num < 1 ? 1 : num);
+											}
 										}}
 										className="form-control"
 										required

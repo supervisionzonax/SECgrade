@@ -21,10 +21,32 @@ export default function Header() {
 
 	const handleLogoClick = (e) => {
 		e.preventDefault();
-		// Marcar que estamos refrescando
-		sessionStorage.setItem("isRefreshing", "true");
-		// Recargar inmediatamente sin transiciones
-		window.location.reload();
+		e.stopPropagation();
+		
+		// Detectar si es móvil (ancho menor a 768px)
+		const isMobile = window.innerWidth < 768;
+		
+		if (isMobile) {
+			// En móvil: redirigir a la página de inicio
+			// Disparar evento personalizado para que el NavigationLoader lo detecte
+			// Usar setTimeout para asegurar que el evento se procese antes de la navegación
+			const navEvent = new CustomEvent('navigation-start', { bubbles: true, cancelable: true });
+			document.dispatchEvent(navEvent);
+			
+			// Pequeño delay para asegurar que el evento se procese
+			setTimeout(() => {
+				router.push("/");
+			}, 10);
+		} else {
+			// En desktop: mantener comportamiento actual (refresh)
+			// Establecer flag para que NavigationLoader muestre el loader
+			try {
+				sessionStorage.setItem("isRefreshing", "true");
+			} catch (e) {
+				// sessionStorage no disponible, continuar
+			}
+			window.location.reload();
+		}
 	};
 
 	return (
@@ -91,7 +113,7 @@ export default function Header() {
 							className={`nav-link ${pathname === "/rosa-isela" ? "active" : ""}`}
 							onClick={() => setMobileMenuOpen(false)}
 						>
-							<i className="fas fa-tags"></i>
+							<i className="fas fa-chart-pie"></i>
 							<span>Rosa Isela</span>
 						</a>
 					</nav>

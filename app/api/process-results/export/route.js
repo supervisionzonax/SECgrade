@@ -115,27 +115,89 @@ export async function POST(request) {
 
 		const header = rows[0].map((h) => String(h || "").trim());
 
+		// Buscar columnas en formato de resumen (FirstName, LastName, CustomID, PercentCorrect)
 		const colIndex = {
-			FirstName: header.indexOf("FirstName"),
-			LastName: header.indexOf("LastName"),
-			CustomId: header.indexOf("CustomID"),
-			PercentCorrect: header.indexOf("PercentCorrect"),
+			FirstName: header.findIndex(h => h.toLowerCase() === "firstname"),
+			LastName: header.findIndex(h => h.toLowerCase() === "lastname"),
+			CustomId: header.findIndex(h => h.toLowerCase() === "customid" || h.toLowerCase() === "custom_id"),
+			PercentCorrect: header.findIndex(h => h.toLowerCase() === "percentcorrect" || h.toLowerCase() === "percent_correct"),
 		};
 
-		const missing = Object.entries(colIndex)
-			.filter(([_, idx]) => idx === -1)
-			.map(([k]) => k);
+		// Verificar si tiene formato de respuestas individuales (StuX, PointsX, MarkX, PriKeyX)
+		const patronesZipGrade = [
+			/^Stu(\d+)$/i,      // Stu1, Stu2, etc.
+			/^Points(\d+)$/i,   // Points1, Points2, etc.
+			/^Mark(\d+)$/i,     // Mark1, Mark2, etc.
+			/^PriKey(\d+)$/i,   // PriKey1, PriKey2, etc.
+		];
+		
+		let tieneFormatoRespuestas = false;
+		for (const colName of header) {
+			if (!colName || typeof colName !== "string") continue;
+			for (const patron of patronesZipGrade) {
+				if (patron.test(colName)) {
+					tieneFormatoRespuestas = true;
+					break;
+				}
+			}
+			if (tieneFormatoRespuestas) break;
+		}
+
+		// Si tiene formato de respuestas individuales pero no tiene formato de resumen,
+		// necesitamos calcular el PercentCorrect a partir de las respuestas
+		if (tieneFormatoRespuestas && (colIndex.FirstName === -1 || colIndex.LastName === -1 || colIndex.CustomId === -1)) {
+			// Buscar columnas alternativas que puedan tener nombre y CustomID
+			// Algunos archivos ZipGrade pueden tener diferentes nombres de columnas
+			const firstNameAlt = header.findIndex(h => {
+				const lower = h.toLowerCase();
+				return lower.includes("first") || lower.includes("nombre") || lower.includes("name");
+			});
+			const lastNameAlt = header.findIndex(h => {
+				const lower = h.toLowerCase();
+				return lower.includes("last") || lower.includes("apellido") || lower.includes("surname");
+			});
+			const customIdAlt = header.findIndex(h => {
+				const lower = h.toLowerCase();
+				return lower.includes("custom") || lower.includes("id") || lower.includes("student");
+			});
+
+			if (firstNameAlt !== -1) colIndex.FirstName = firstNameAlt;
+			if (lastNameAlt !== -1) colIndex.LastName = lastNameAlt;
+			if (customIdAlt !== -1) colIndex.CustomId = customIdAlt;
+		}
+
+		const missing = [];
+		if (colIndex.FirstName === -1) missing.push("FirstName");
+		if (colIndex.LastName === -1) missing.push("LastName");
+		if (colIndex.CustomId === -1) missing.push("CustomID");
 
 		if (missing.length) {
 			return NextResponse.json(
 				{
 					success: false,
-					error: `Missing required header(s): ${missing.join(", ")}`,
+					error: "Tu archivo Excel no es compatible, descargalo de zipgrade.",
 					availableHeaders: header,
-					suggestion: "El archivo debe contener exactamente estas columnas: FirstName, LastName, CustomID, PercentCorrect",
+					suggestion: "El archivo debe contener las columnas: FirstName, LastName, CustomID y PercentCorrect (o formato de respuestas individuales con StuX, PointsX, etc.)",
 				},
 				{ status: 400 }
 			);
+		}
+
+		// Si no tiene PercentCorrect pero tiene formato de respuestas individuales, calcularlo
+		const necesitaCalcularPercentCorrect = colIndex.PercentCorrect === -1 && tieneFormatoRespuestas;
+		
+		// Si necesitamos calcular PercentCorrect, encontrar todas las columnas PointsX
+		let columnasPoints = [];
+		if (necesitaCalcularPercentCorrect) {
+			for (let i = 0; i < header.length; i++) {
+				const colName = header[i];
+				if (colName && /^Points(\d+)$/i.test(colName)) {
+					const match = colName.match(/^Points(\d+)$/i);
+					if (match && match[1]) {
+						columnasPoints.push({ index: i, pregunta: parseInt(match[1], 10) });
+					}
+				}
+			}
 		}
 
 		const groups = new Map();
@@ -153,7 +215,24 @@ export async function POST(request) {
 
 			const firstName = String(row[colIndex.FirstName] || "").trim();
 			const lastName = String(row[colIndex.LastName] || "").trim();
-			const percentCorrect = row[colIndex.PercentCorrect];
+			
+			let percentCorrect;
+			if (necesitaCalcularPercentCorrect && columnasPoints.length > 0) {
+				// Calcular PercentCorrect a partir de las columnas PointsX
+				let totalPuntos = 0;
+				let puntosObtenidos = 0;
+				for (const colPoints of columnasPoints) {
+					const puntos = parseFloat(row[colPoints.index]) || 0;
+					const maxPuntos = 1; // Asumimos que cada pregunta vale 1 punto
+					totalPuntos += maxPuntos;
+					if (puntos > 0) {
+						puntosObtenidos += puntos;
+					}
+				}
+				percentCorrect = totalPuntos > 0 ? (puntosObtenidos / totalPuntos) * 100 : 0;
+			} else {
+				percentCorrect = colIndex.PercentCorrect !== -1 ? parseFloat(row[colIndex.PercentCorrect]) || 0 : 0;
+			}
 
 			const outRow = {
 				FirstName: firstName,

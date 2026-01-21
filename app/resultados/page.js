@@ -2,15 +2,69 @@
 import { useState } from "react";
 import FileUpload from "../../components/FileUpload";
 import Header from "../../components/Header";
+import ProcessingLoader from "../../components/ProcessingLoader";
 
 export default function Resultados() {
 	const [file, setFile] = useState(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState("");
 
-	const handleFileSelect = (selectedFile) => {
+	const handleFileSelect = async (selectedFile) => {
 		setError("");
-		setFile(selectedFile);
+		
+		try {
+			const validExtensions = [".xlsx", ".xls", ".csv", ".ods"];
+			const fileExtension = "." + selectedFile.name.toLowerCase().split(".").pop();
+
+			if (!validExtensions.includes(fileExtension)) {
+				setError(`Formato no compatible. Use: ${validExtensions.join(", ")}`);
+				setFile(null);
+				return;
+			}
+
+			// Validar formato ZipGrade antes de aceptar el archivo
+			const formData = new FormData();
+			formData.append("file", selectedFile);
+
+			const response = await fetch("/api/validate-zipgrade", {
+				method: "POST",
+				body: formData,
+			});
+
+			console.log("Response status:", response.status);
+			console.log("Response ok:", response.ok);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error("Error response text:", errorText);
+				let errorData;
+				try {
+					errorData = JSON.parse(errorText);
+					console.error("Error data:", errorData);
+				} catch {
+					errorData = { error: errorText || "El archivo no es compatible. Por favor, suba el archivo original exportado desde ZipGrade." };
+				}
+				setError(errorData.error || "Tu archivo Excel no es compatible, descargalo de zipgrade.");
+				setFile(null);
+				return;
+			}
+
+			const data = await response.json();
+			console.log("Response data:", data);
+			if (!data.success) {
+				console.error("Data success is false:", data);
+				setError("Tu archivo Excel no es compatible, descargalo de zipgrade.");
+				setFile(null);
+				return;
+			}
+
+			console.log("✓ Archivo validado correctamente, estableciendo archivo...");
+			setFile(selectedFile);
+		} catch (error) {
+			console.error("Error validando archivo:", error);
+			setError("Error al validar el archivo. Por favor, intente nuevamente.");
+			setFile(null);
+		}
 	};
 
 
@@ -20,8 +74,18 @@ export default function Resultados() {
 			return;
 		}
 
-		setIsProcessing(true);
+		// Limpiar errores y mostrar spinner inmediatamente
 		setError("");
+		setIsProcessing(true);
+		
+		// Esperar un frame para asegurar que React renderice el spinner antes de iniciar el procesamiento
+		await new Promise(resolve => {
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					resolve();
+				});
+			});
+		});
 
 		try {
 			const formData = new FormData();
@@ -38,12 +102,12 @@ export default function Resultados() {
 				try {
 					errorData = JSON.parse(errorText);
 				} catch {
-					errorData = { error: errorText || "Error desconocido" };
+					errorData = { error: errorText || "El archivo no es compatible. Por favor, suba el archivo original exportado desde ZipGrade." };
 				}
 				throw new Error(
 					errorData.error ||
 						errorData.details ||
-						`Error ${response.status}: ${response.statusText}`
+						"El archivo no es compatible. Por favor, suba el archivo original exportado desde ZipGrade."
 				);
 			}
 
@@ -75,6 +139,7 @@ export default function Resultados() {
 
 	return (
 		<>
+			{isProcessing && <ProcessingLoader />}
 			<Header />
 
 			<main className="main">
@@ -88,7 +153,7 @@ export default function Resultados() {
 					</div>
 
 					<div className="info-alert">
-						<div className="alert-icon">📊</div>
+						<div className="alert-icon">📁</div>
 						<div>
 							<h3>Formato de archivo compatible</h3>
 							<p>

@@ -421,6 +421,40 @@ export async function POST(request) {
 
 		const header = rows[0].map((h) => String(h || "").trim());
 
+		// Validar formato ZipGrade: debe tener al menos una columna StuX, PointsX, MarkX o PriKeyX
+		const patronesZipGrade = [
+			/^Stu(\d+)$/i,      // Stu1, Stu2, etc.
+			/^Points(\d+)$/i,   // Points1, Points2, etc.
+			/^Mark(\d+)$/i,     // Mark1, Mark2, etc.
+			/^PriKey(\d+)$/i,   // PriKey1, PriKey2, etc.
+		];
+
+		let tieneFormatoZipGrade = false;
+		for (const colName of header) {
+			try {
+				if (!colName || typeof colName !== "string") continue;
+				for (const patron of patronesZipGrade) {
+					if (patron.test(colName)) {
+						tieneFormatoZipGrade = true;
+						break;
+					}
+				}
+				if (tieneFormatoZipGrade) break;
+			} catch (colError) {
+				continue;
+			}
+		}
+
+		if (!tieneFormatoZipGrade) {
+			return NextResponse.json(
+				{
+					success: false,
+					error: "Tu archivo Excel no es compatible, descargalo de zipgrade.",
+				},
+				{ status: 400 }
+			);
+		}
+
 		const colIndex = {
 			FirstName: header.findIndex((h) => h.toLowerCase().includes("firstname") || h.toLowerCase().includes("nombre")),
 			LastName: header.findIndex((h) => h.toLowerCase().includes("lastname") || h.toLowerCase().includes("apellido")),
@@ -432,7 +466,7 @@ export async function POST(request) {
 			return NextResponse.json(
 				{
 					success: false,
-					error: "El archivo debe contener columnas: FirstName, LastName, CustomID",
+					error: "Tu archivo Excel no es compatible, descargalo de zipgrade.",
 					availableHeaders: header.slice(0, 20), // Mostrar primeras 20 columnas
 				},
 				{ status: 400 }

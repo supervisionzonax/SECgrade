@@ -3,6 +3,11 @@ import Header from "../components/Header";
 import Link from "next/link";
 
 export default function Home() {
+	const handleLinkClick = (e) => {
+		// Disparar evento personalizado para que el NavigationLoader lo detecte
+		document.dispatchEvent(new CustomEvent('navigation-start', { bubbles: true, cancelable: true }));
+	};
+
 	return (
 		<>
 			<Header />
@@ -31,7 +36,7 @@ export default function Home() {
 
 					{/* Feature Cards */}
 					<div className="feature-grid">
-						<Link href="/preparar-listas" className="feature-card-link">
+						<Link href="/preparar-listas" className="feature-card-link" onClick={handleLinkClick}>
 							<div className="feature-card">
 								<div className="feature-icon">
 									<i className="fas fa-file-upload"></i>
@@ -48,7 +53,7 @@ export default function Home() {
 							</div>
 						</Link>
 
-						<Link href="/resultados" className="feature-card-link">
+						<Link href="/resultados" className="feature-card-link" onClick={handleLinkClick}>
 							<div className="feature-card">
 								<div className="feature-icon">
 									<i className="fas fa-chart-bar"></i>
@@ -65,10 +70,10 @@ export default function Home() {
 							</div>
 						</Link>
 
-						<Link href="/rosa-isela" className="feature-card-link">
+						<Link href="/rosa-isela" className="feature-card-link" onClick={handleLinkClick}>
 							<div className="feature-card">
 								<div className="feature-icon">
-									<i className="fas fa-tags"></i>
+									<i className="fas fa-chart-pie"></i>
 								</div>
 								<h3>Rosa Isela - Análisis por Categorías</h3>
 								<p>
@@ -185,180 +190,40 @@ export default function Home() {
 
 				@media (max-width: 768px) {
 					.hero {
-						padding: 1rem 0 0 0;
-						margin-bottom: 1.25rem;
-					}
-
-					.hero-content .title {
-						font-size: 1.75rem !important;
-						margin-top: 0.75rem;
+						padding: 0.5rem 0 0 0;
 						margin-bottom: 0.75rem;
-					}
-
-					.info-alert {
-						margin-bottom: 1.25rem;
-						padding: 1rem;
-					}
-
-					.info-alert h3 {
-						font-size: 0.95rem;
-						margin-bottom: 0.5rem;
-					}
-
-					.info-alert p {
-						font-size: 0.85rem;
-						line-height: 1.4;
-					}
-
-					.feature-grid {
-						gap: 1rem;
-						margin-top: 1.5rem;
-						align-items: stretch;
-					}
-
-					.feature-card {
-						padding: 1.5rem;
-						min-height: 220px;
-						height: 100%;
-						align-self: stretch;
-					}
-
-					.feature-icon {
-						width: 48px;
-						height: 48px;
-						font-size: 1.25rem;
-						margin-bottom: 0.75rem;
-					}
-
-					.feature-card h3 {
-						font-size: 1rem;
-						margin-bottom: 0.6rem;
-						line-height: 1.3;
-					}
-
-					.feature-card p {
-						font-size: 0.85rem;
-						margin-bottom: 0.75rem;
-						line-height: 1.4;
-					}
-
-					.feature-card .primary-button {
-						padding: 0.65rem 1rem;
-						font-size: 0.85rem;
-						margin-top: 0.5rem;
-					}
-				}
-
-				@media (max-width: 480px) {
-					.hero {
-						padding: 0.75rem 0 0 0 !important;
-						margin-bottom: 1rem !important;
 					}
 
 					.hero-content .title {
 						font-size: 1.5rem !important;
-						margin-top: 0.5rem !important;
-						margin-bottom: 0.5rem !important;
-					}
-
-					.info-alert {
-						margin-bottom: 1rem !important;
-						padding: 0.9rem !important;
-					}
-
-					.info-alert h3 {
-						font-size: 0.9rem !important;
-						margin-bottom: 0.4rem !important;
-					}
-
-					.info-alert p {
-						font-size: 0.8rem !important;
-						line-height: 1.4 !important;
-					}
-
-					.feature-grid {
-						gap: 0.75rem !important;
-						margin-top: 1.25rem !important;
-						align-items: stretch !important;
-					}
-
-					.feature-card {
-						padding: 1.25rem !important;
-						min-height: 200px !important;
-						height: 100% !important;
-						align-self: stretch !important;
-					}
-
-					.feature-icon {
-						width: 44px !important;
-						height: 44px !important;
-						font-size: 1.15rem !important;
-						margin-bottom: 0.6rem !important;
-					}
-
-					.feature-card h3 {
-						font-size: 0.95rem !important;
-						margin-bottom: 0.5rem !important;
-						line-height: 1.3 !important;
-					}
-
-					.feature-card p {
-						font-size: 0.8rem !important;
-						margin-bottom: 0.6rem !important;
-						line-height: 1.4 !important;
-					}
-
-					.feature-card .primary-button {
-						padding: 0.6rem 0.9rem !important;
-						font-size: 0.8rem !important;
-						margin-top: 0.4rem !important;
-					}
-
-					.feature-card .primary-button i {
-						font-size: 0.75rem !important;
-					}
-
-					.feature-card .primary-button span {
-						font-size: 0.8rem !important;
-					}
-				}
-
-				@media (max-width: 360px) {
-					.hero {
-						padding: 0.75rem 0 0 0;
-						margin-bottom: 1rem;
-					}
-
-					.hero-content .title {
-						font-size: 1.4rem !important;
 						margin-top: 0.5rem;
 						margin-bottom: 0.5rem;
 					}
 
 					.info-alert {
-						margin-bottom: 1rem;
-						padding: 0.85rem;
+						margin-bottom: 0.75rem;
+						padding: 0.75rem;
 					}
 
 					.info-alert h3 {
 						font-size: 0.85rem;
-						margin-bottom: 0.4rem;
+						margin-bottom: 0.35rem;
 					}
 
 					.info-alert p {
 						font-size: 0.75rem;
-						line-height: 1.4;
+						line-height: 1.35;
 					}
 
 					.feature-grid {
 						gap: 0.75rem;
-						margin-top: 1.25rem;
+						margin-top: 0.75rem;
 						align-items: stretch;
 					}
 
 					.feature-card {
-						padding: 1.15rem;
-						min-height: 190px;
+						padding: 1rem;
+						min-height: auto;
 						height: 100%;
 						align-self: stretch;
 					}
@@ -367,23 +232,163 @@ export default function Home() {
 						width: 40px;
 						height: 40px;
 						font-size: 1.1rem;
-						margin-bottom: 0.6rem;
+						margin-bottom: 0.5rem;
 					}
 
 					.feature-card h3 {
 						font-size: 0.9rem;
-						margin-bottom: 0.5rem;
+						margin-bottom: 0.4rem;
+						line-height: 1.25;
 					}
 
 					.feature-card p {
 						font-size: 0.75rem;
-						margin-bottom: 0.6rem;
+						margin-bottom: 0.5rem;
+						line-height: 1.35;
 					}
 
 					.feature-card .primary-button {
-						padding: 0.55rem 0.85rem;
+						padding: 0.5rem 0.85rem;
+						font-size: 0.8rem;
+						margin-top: 0.35rem;
+					}
+				}
+
+				@media (max-width: 480px) {
+					.hero {
+						padding: 0.4rem 0 0 0 !important;
+						margin-bottom: 0.5rem !important;
+					}
+
+					.hero-content .title {
+						font-size: 1.3rem !important;
+						margin-top: 0.35rem !important;
+						margin-bottom: 0.35rem !important;
+					}
+
+					.info-alert {
+						margin-bottom: 0.5rem !important;
+						padding: 0.6rem !important;
+					}
+
+					.info-alert h3 {
+						font-size: 0.8rem !important;
+						margin-bottom: 0.3rem !important;
+					}
+
+					.info-alert p {
+						font-size: 0.7rem !important;
+						line-height: 1.3 !important;
+					}
+
+					.feature-grid {
+						gap: 0.5rem !important;
+						margin-top: 0.5rem !important;
+						align-items: stretch !important;
+					}
+
+					.feature-card {
+						padding: 0.85rem !important;
+						min-height: auto !important;
+						height: 100% !important;
+						align-self: stretch !important;
+					}
+
+					.feature-icon {
+						width: 36px !important;
+						height: 36px !important;
+						font-size: 1rem !important;
+						margin-bottom: 0.4rem !important;
+					}
+
+					.feature-card h3 {
+						font-size: 0.85rem !important;
+						margin-bottom: 0.35rem !important;
+						line-height: 1.2 !important;
+					}
+
+					.feature-card p {
+						font-size: 0.7rem !important;
+						margin-bottom: 0.4rem !important;
+						line-height: 1.3 !important;
+					}
+
+					.feature-card .primary-button {
+						padding: 0.45rem 0.75rem !important;
+						font-size: 0.75rem !important;
+						margin-top: 0.3rem !important;
+					}
+
+					.feature-card .primary-button i {
+						font-size: 0.7rem !important;
+					}
+
+					.feature-card .primary-button span {
+						font-size: 0.75rem !important;
+					}
+				}
+
+				@media (max-width: 360px) {
+					.hero {
+						padding: 0.35rem 0 0 0;
+						margin-bottom: 0.45rem;
+					}
+
+					.hero-content .title {
+						font-size: 1.2rem !important;
+						margin-top: 0.3rem;
+						margin-bottom: 0.3rem;
+					}
+
+					.info-alert {
+						margin-bottom: 0.45rem;
+						padding: 0.55rem;
+					}
+
+					.info-alert h3 {
 						font-size: 0.75rem;
-						margin-top: 0.4rem;
+						margin-bottom: 0.25rem;
+					}
+
+					.info-alert p {
+						font-size: 0.65rem;
+						line-height: 1.3;
+					}
+
+					.feature-grid {
+						gap: 0.45rem;
+						margin-top: 0.45rem;
+						align-items: stretch;
+					}
+
+					.feature-card {
+						padding: 0.75rem;
+						min-height: auto;
+						height: 100%;
+						align-self: stretch;
+					}
+
+					.feature-icon {
+						width: 32px;
+						height: 32px;
+						font-size: 0.9rem;
+						margin-bottom: 0.35rem;
+					}
+
+					.feature-card h3 {
+						font-size: 0.8rem;
+						margin-bottom: 0.3rem;
+					}
+
+					.feature-card p {
+						font-size: 0.65rem;
+						margin-bottom: 0.35rem;
+					}
+
+					.feature-card .primary-button {
+						padding: 0.4rem 0.7rem;
+						font-size: 0.7rem;
+						margin-top: 0.25rem;
 					}
 				}
 			`}</style>

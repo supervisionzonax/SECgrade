@@ -2,6 +2,7 @@
 import { useState } from "react";
 import FileUpload from "../../components/FileUpload";
 import Header from "../../components/Header";
+import ProcessingLoader from "../../components/ProcessingLoader";
 
 export default function RosaIsela() {
 	const [file, setFile] = useState(null);
@@ -78,7 +79,7 @@ export default function RosaIsela() {
 				
 				// Mensajes más amigables según el código de estado
 				if (response.status === 500) {
-					errorMessage = "Error interno del servidor. Por favor, verifique que el archivo no esté corrupto y vuelva a intentar.";
+					errorMessage = "El archivo no es compatible. Por favor, suba el archivo original exportado desde ZipGrade.";
 				} else if (response.status === 400) {
 					// El mensaje ya viene del servidor, solo asegurarse de que sea claro
 					if (!errorMessage || errorMessage.includes("Error 400")) {
@@ -115,7 +116,12 @@ export default function RosaIsela() {
 			}
 
 			if (!data.success) {
-				throw new Error(data.error || "Error al detectar preguntas");
+				const errorMsg = data.error || "Error al detectar preguntas";
+				// Si el error es sobre formato incompatible, usar el mensaje específico
+				if (errorMsg.includes("no es compatible") || errorMsg.includes("zipgrade")) {
+					throw new Error("Tu archivo Excel no es compatible, descargalo de zipgrade.");
+				}
+				throw new Error(errorMsg);
 			}
 
 			// Establecer el archivo solo después de una detección exitosa
@@ -162,7 +168,7 @@ export default function RosaIsela() {
 			
 			// Mensajes más específicos según el tipo de error
 			if (err.message.includes("500") || err.message.includes("Internal Server Error")) {
-				errorMessage = "Error interno del servidor. Por favor, verifique que el archivo no esté corrupto e intente nuevamente. Si el problema persiste, contacte al administrador.";
+				errorMessage = "El archivo no es compatible. Por favor, suba el archivo original exportado desde ZipGrade.";
 			} else if (err.message.includes("400") || err.message.includes("Bad Request")) {
 				errorMessage = "El archivo no es válido o está corrupto. Por favor, verifique el formato y vuelva a intentar.";
 			} else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
@@ -437,7 +443,12 @@ export default function RosaIsela() {
 			}, 10000);
 		} catch (error) {
 			console.error("Error al exportar resultados:", error);
-			setError(`❌ ${error.message || "Ocurrió un error al exportar el archivo"}`);
+			let errorMessage = error.message || "Ocurrió un error al exportar el archivo";
+			// Si el error es sobre formato incompatible, usar el mensaje específico
+			if (errorMessage.includes("no es compatible") || errorMessage.includes("zipgrade")) {
+				errorMessage = "Tu archivo Excel no es compatible, descargalo de zipgrade.";
+			}
+			setError(`❌ ${errorMessage}`);
 		} finally {
 			setIsProcessing(false);
 		}
@@ -445,6 +456,7 @@ export default function RosaIsela() {
 
 	return (
 		<>
+			{(isProcessing || isDetecting) && <ProcessingLoader />}
 			<Header />
 
 			<main className="main">
@@ -530,7 +542,7 @@ export default function RosaIsela() {
 							<div className="categorias-section">
 								<div className="section-header">
 									<h3>
-										<i className="fas fa-tags"></i> Configurar Categorías
+										<i className="fas fa-chart-pie"></i> Configurar Categorías
 									</h3>
 									<button
 										type="button"

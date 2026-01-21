@@ -1,5 +1,6 @@
 import "./globals.css";
 import PageLoader from "../components/PageLoader";
+import LayoutWrapper from "../components/LayoutWrapper";
 
 export const metadata = {
 	title: "SEC Sonora - RAF | ZipGrade",
@@ -43,7 +44,9 @@ export default function RootLayout({ children }) {
 				className="loaded"
 			>
 				<PageLoader />
-				{children}
+				<LayoutWrapper>
+					{children}
+				</LayoutWrapper>
 			</body>
 		</html>
 	);

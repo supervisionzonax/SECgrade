@@ -150,7 +150,7 @@ export async function POST(request) {
 			return NextResponse.json(
 				{
 					success: false,
-					error: `Missing required header(s): ${missing.join(", ")}`,
+					error: "Tu archivo Excel no es compatible, descargalo de zipgrade.",
 					availableHeaders: header,
 					suggestion:
 						"El archivo debe contener exactamente estas columnas: FirstName, LastName, CustomID, PercentCorrect",
