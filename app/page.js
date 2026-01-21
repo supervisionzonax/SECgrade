@@ -87,14 +87,14 @@ export default function Home() {
 
 			<style jsx>{`
 				.hero {
-					padding: 0.5rem 0 0 0;
-					margin-bottom: 0.4rem;
+					padding: 1rem 0 0 0;
+					margin-bottom: 1rem;
 				}
 
 				.hero-content .title {
 					font-size: clamp(1.5rem, 5vw, 3rem) !important;
-					margin-top: 1.5rem;
-					margin-bottom: 1.5rem;
+					margin-top: 0.75rem;
+					margin-bottom: 0.75rem;
 				}
 
 				.feature-card-link {
@@ -117,14 +117,14 @@ export default function Home() {
 				}
 
 				.feature-grid {
-					gap: 0.4rem;
-					margin-top: 0.4rem;
+					gap: 1rem;
+					margin-top: 1.25rem;
 					align-items: stretch;
 				}
 
 				.feature-card {
-					padding: 1rem;
-					min-height: 240px;
+					padding: 1.5rem;
+					min-height: 260px;
 					height: 100%;
 					display: flex;
 					flex-direction: column;
@@ -138,28 +138,28 @@ export default function Home() {
 
 				.feature-card .primary-button {
 					margin-top: auto;
-					padding: 0.5rem 0.85rem;
-					font-size: 0.85rem;
+					padding: 0.65rem 1.1rem;
+					font-size: 0.9rem;
 				}
 
 				.feature-icon {
-					width: 48px;
-					height: 48px;
-					font-size: 1.3rem;
-					margin-bottom: 0.6rem;
+					width: 52px;
+					height: 52px;
+					font-size: 1.4rem;
+					margin-bottom: 0.75rem;
 				}
 
 				.feature-card h3 {
-					font-size: 1rem;
-					margin-bottom: 0.4rem;
+					font-size: 1.05rem;
+					margin-bottom: 0.6rem;
 					text-decoration: none !important;
 					text-decoration-line: none !important;
 				}
 
 				.feature-card p {
-					font-size: 0.85rem;
-					margin-bottom: 0.6rem;
-					line-height: 1.4;
+					font-size: 0.9rem;
+					margin-bottom: 0.75rem;
+					line-height: 1.5;
 					text-decoration: none !important;
 					text-decoration-line: none !important;
 				}
@@ -169,56 +169,196 @@ export default function Home() {
 				}
 
 				.info-alert {
-					margin-bottom: 0.3rem;
-					padding: 0.5rem;
+					margin-bottom: 1rem;
+					padding: 1rem;
 				}
 
 				.info-alert h3 {
-					font-size: 0.8rem;
-					margin-bottom: 0.2rem;
+					font-size: 0.95rem;
+					margin-bottom: 0.4rem;
 				}
 
 				.info-alert p {
-					font-size: 0.7rem;
-					line-height: 1.25;
+					font-size: 0.85rem;
+					line-height: 1.5;
 				}
 
 				@media (max-width: 768px) {
 					.hero {
-						padding: 0.5rem 0 0 0;
-						margin-bottom: 0.35rem;
+						padding: 1rem 0 0 0;
+						margin-bottom: 1.25rem;
 					}
 
 					.hero-content .title {
 						font-size: 1.75rem !important;
-						margin-top: 1rem;
-						margin-bottom: 1rem;
+						margin-top: 0.75rem;
+						margin-bottom: 0.75rem;
 					}
 
 					.info-alert {
-						margin-bottom: 0.4rem;
-						padding: 0.6rem;
+						margin-bottom: 1.25rem;
+						padding: 1rem;
 					}
 
 					.info-alert h3 {
-						font-size: 0.85rem;
-						margin-bottom: 0.25rem;
+						font-size: 0.95rem;
+						margin-bottom: 0.5rem;
 					}
 
 					.info-alert p {
-						font-size: 0.75rem;
-						line-height: 1.3;
+						font-size: 0.85rem;
+						line-height: 1.4;
 					}
 
 					.feature-grid {
-						gap: 0.4rem;
-						margin-top: 0.4rem;
+						gap: 1rem;
+						margin-top: 1.5rem;
 						align-items: stretch;
 					}
 
 					.feature-card {
-						padding: 0.9rem;
-						min-height: 180px;
+						padding: 1.5rem;
+						min-height: 220px;
+						height: 100%;
+						align-self: stretch;
+					}
+
+					.feature-icon {
+						width: 48px;
+						height: 48px;
+						font-size: 1.25rem;
+						margin-bottom: 0.75rem;
+					}
+
+					.feature-card h3 {
+						font-size: 1rem;
+						margin-bottom: 0.6rem;
+						line-height: 1.3;
+					}
+
+					.feature-card p {
+						font-size: 0.85rem;
+						margin-bottom: 0.75rem;
+						line-height: 1.4;
+					}
+
+					.feature-card .primary-button {
+						padding: 0.65rem 1rem;
+						font-size: 0.85rem;
+						margin-top: 0.5rem;
+					}
+				}
+
+				@media (max-width: 480px) {
+					.hero {
+						padding: 0.75rem 0 0 0 !important;
+						margin-bottom: 1rem !important;
+					}
+
+					.hero-content .title {
+						font-size: 1.5rem !important;
+						margin-top: 0.5rem !important;
+						margin-bottom: 0.5rem !important;
+					}
+
+					.info-alert {
+						margin-bottom: 1rem !important;
+						padding: 0.9rem !important;
+					}
+
+					.info-alert h3 {
+						font-size: 0.9rem !important;
+						margin-bottom: 0.4rem !important;
+					}
+
+					.info-alert p {
+						font-size: 0.8rem !important;
+						line-height: 1.4 !important;
+					}
+
+					.feature-grid {
+						gap: 0.75rem !important;
+						margin-top: 1.25rem !important;
+						align-items: stretch !important;
+					}
+
+					.feature-card {
+						padding: 1.25rem !important;
+						min-height: 200px !important;
+						height: 100% !important;
+						align-self: stretch !important;
+					}
+
+					.feature-icon {
+						width: 44px !important;
+						height: 44px !important;
+						font-size: 1.15rem !important;
+						margin-bottom: 0.6rem !important;
+					}
+
+					.feature-card h3 {
+						font-size: 0.95rem !important;
+						margin-bottom: 0.5rem !important;
+						line-height: 1.3 !important;
+					}
+
+					.feature-card p {
+						font-size: 0.8rem !important;
+						margin-bottom: 0.6rem !important;
+						line-height: 1.4 !important;
+					}
+
+					.feature-card .primary-button {
+						padding: 0.6rem 0.9rem !important;
+						font-size: 0.8rem !important;
+						margin-top: 0.4rem !important;
+					}
+
+					.feature-card .primary-button i {
+						font-size: 0.75rem !important;
+					}
+
+					.feature-card .primary-button span {
+						font-size: 0.8rem !important;
+					}
+				}
+
+				@media (max-width: 360px) {
+					.hero {
+						padding: 0.75rem 0 0 0;
+						margin-bottom: 1rem;
+					}
+
+					.hero-content .title {
+						font-size: 1.4rem !important;
+						margin-top: 0.5rem;
+						margin-bottom: 0.5rem;
+					}
+
+					.info-alert {
+						margin-bottom: 1rem;
+						padding: 0.85rem;
+					}
+
+					.info-alert h3 {
+						font-size: 0.85rem;
+						margin-bottom: 0.4rem;
+					}
+
+					.info-alert p {
+						font-size: 0.75rem;
+						line-height: 1.4;
+					}
+
+					.feature-grid {
+						gap: 0.75rem;
+						margin-top: 1.25rem;
+						align-items: stretch;
+					}
+
+					.feature-card {
+						padding: 1.15rem;
+						min-height: 190px;
 						height: 100%;
 						align-self: stretch;
 					}
@@ -226,164 +366,24 @@ export default function Home() {
 					.feature-icon {
 						width: 40px;
 						height: 40px;
-						font-size: 1rem;
-						margin-bottom: 0.5rem;
+						font-size: 1.1rem;
+						margin-bottom: 0.6rem;
 					}
 
 					.feature-card h3 {
 						font-size: 0.9rem;
-						margin-bottom: 0.4rem;
-						line-height: 1.2;
-					}
-
-					.feature-card p {
-						font-size: 0.75rem;
 						margin-bottom: 0.5rem;
-						line-height: 1.3;
-					}
-
-					.feature-card .primary-button {
-						padding: 0.5rem 0.8rem;
-						font-size: 0.8rem;
-						margin-top: 0.4rem;
-					}
-				}
-
-				@media (max-width: 480px) {
-					.hero {
-						padding: 0.25rem 0 0 0 !important;
-						margin-bottom: 0.2rem !important;
-					}
-
-					.hero-content .title {
-						font-size: 1.3rem !important;
-						margin-top: 0.75rem !important;
-						margin-bottom: 0.75rem !important;
-					}
-
-					.info-alert {
-						margin-bottom: 0.25rem !important;
-						padding: 0.4rem !important;
-					}
-
-					.info-alert h3 {
-						font-size: 0.75rem !important;
-						margin-bottom: 0.15rem !important;
-					}
-
-					.info-alert p {
-						font-size: 0.65rem !important;
-						line-height: 1.2 !important;
-					}
-
-					.feature-grid {
-						gap: 0.3rem !important;
-						margin-top: 0.25rem !important;
-						align-items: stretch !important;
-					}
-
-					.feature-card {
-						padding: 0.65rem !important;
-						min-height: 160px !important;
-						height: 100% !important;
-						align-self: stretch !important;
-					}
-
-					.feature-icon {
-						width: 32px !important;
-						height: 32px !important;
-						font-size: 0.85rem !important;
-						margin-bottom: 0.3rem !important;
-					}
-
-					.feature-card h3 {
-						font-size: 0.8rem !important;
-						margin-bottom: 0.25rem !important;
-						line-height: 1.15 !important;
 					}
 
 					.feature-card p {
-						font-size: 0.65rem !important;
-						margin-bottom: 0.3rem !important;
-						line-height: 1.25 !important;
-					}
-
-					.feature-card .primary-button {
-						padding: 0.4rem 0.65rem !important;
-						font-size: 0.7rem !important;
-						margin-top: 0.25rem !important;
-					}
-
-					.feature-card .primary-button i {
-						font-size: 0.65rem !important;
-					}
-
-					.feature-card .primary-button span {
-						font-size: 0.7rem !important;
-					}
-				}
-
-				@media (max-width: 360px) {
-					.hero {
-						padding: 0.3rem 0 0 0;
-						margin-bottom: 0.25rem;
-					}
-
-					.hero-content .title {
-						font-size: 1.35rem !important;
-						margin-top: 0.75rem;
-						margin-bottom: 0.75rem;
-					}
-
-					.info-alert {
-						margin-bottom: 0.25rem;
-						padding: 0.45rem;
-					}
-
-					.info-alert h3 {
 						font-size: 0.75rem;
-						margin-bottom: 0.15rem;
-					}
-
-					.info-alert p {
-						font-size: 0.65rem;
-						line-height: 1.2;
-					}
-
-					.feature-grid {
-						gap: 0.3rem;
-						margin-top: 0.25rem;
-						align-items: stretch;
-					}
-
-					.feature-card {
-						padding: 0.65rem;
-						min-height: 160px;
-						height: 100%;
-						align-self: stretch;
-					}
-
-					.feature-icon {
-						width: 32px;
-						height: 32px;
-						font-size: 0.85rem;
-						margin-bottom: 0.35rem;
-					}
-
-					.feature-card h3 {
-						font-size: 0.8rem;
-						margin-bottom: 0.25rem;
-					}
-
-					.feature-card p {
-						font-size: 0.65rem;
-						margin-bottom: 0.35rem;
+						margin-bottom: 0.6rem;
 					}
 
 					.feature-card .primary-button {
-						padding: 0.4rem 0.65rem;
-						font-size: 0.7rem;
-						margin-top: 0.25rem;
+						padding: 0.55rem 0.85rem;
+						font-size: 0.75rem;
+						margin-top: 0.4rem;
 					}
 				}
 			`}</style>

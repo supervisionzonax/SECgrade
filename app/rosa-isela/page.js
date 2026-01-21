@@ -216,7 +216,8 @@ export default function RosaIsela() {
 		const nuevasCategorias = [...categorias];
 		
 		if (campo === "nombre") {
-			nuevasCategorias[index].nombre = valor || `Categoría ${index + 1}`;
+			// Permitir cadenas vacías para que el usuario pueda borrar completamente el texto
+			nuevasCategorias[index].nombre = valor === null || valor === undefined ? `Categoría ${index + 1}` : valor;
 			setCategorias(nuevasCategorias);
 			setError("");
 		} else if (campo === "inicio") {
@@ -687,7 +688,7 @@ export default function RosaIsela() {
 										</>
 									) : (
 										<>
-											<i className="fas fa-file-excel"></i>
+											<i className="fas fa-chart-bar"></i>
 											<span>Generar Reporte por Categorías</span>
 										</>
 									)}

@@ -689,6 +689,10 @@ export default function PrepararListas() {
 					margin-bottom: 1rem;
 				}
 
+				.form-grid {
+					margin-bottom: 0;
+				}
+
 				.form-group label {
 					font-size: 0.9rem;
 					margin-bottom: 0.5rem;
@@ -701,14 +705,18 @@ export default function PrepararListas() {
 
 				.form-help {
 					font-size: 0.85rem;
-					margin-top: 0.5rem;
-					margin-bottom: 1rem;
-					line-height: 1.5;
+					margin-top: 0.4rem;
+					margin-bottom: 0;
+					line-height: 1.4;
 					color: var(--gray);
-					padding: 0.75rem;
+					padding: 0.5rem 0.75rem;
 					background: var(--primary-lightest);
 					border-radius: var(--radius-md);
 					border-left: 3px solid var(--primary);
+				}
+
+				.form-grid .form-group:last-child .form-help {
+					margin-bottom: 0;
 				}
 
 				.grupos-grid {
@@ -761,8 +769,8 @@ export default function PrepararListas() {
 				}
 
 				.form-actions {
-					margin-top: 1.5rem;
-					padding-top: 1.5rem;
+					margin-top: 0;
+					padding-top: 0.25rem;
 					border-top: 2px solid var(--gray-lighter);
 				}
 

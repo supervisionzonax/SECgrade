@@ -145,7 +145,7 @@ export default function Resultados() {
 										</>
 									) : (
 										<>
-											<i className="fas fa-file-excel"></i>
+											<i className="fas fa-file-download"></i>
 											<span>Descargar Excel Formateado</span>
 										</>
 									)}
